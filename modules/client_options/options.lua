@@ -32,7 +32,9 @@ local defaultOptions = {
   turnDelay = 50,
   hotkeyDelay = 70,
   crosshair = 'default',
-  enableHighlightMouseTarget = true
+  enableHighlightMouseTarget = true,
+  antiAliasing = true,
+  renderScale = 100
 }
 
 local optionsWindow
@@ -46,6 +48,7 @@ local soundPanel
 local audioButton
 
 local crosshairCombobox
+local renderScaleCombobox
 
 local function setupGraphicsEngines()
   local enginesRadioGroup = UIRadioGroup.create()
@@ -125,6 +128,18 @@ function init()
 
   crosshairCombobox.onOptionChange = function(comboBox, option)
     setOption('crosshair', comboBox:getCurrentOption().data)
+  end
+
+  renderScaleCombobox = graphicsPanel:recursiveGetChildById('renderScale')
+
+  renderScaleCombobox:addOption('50%', 50)
+  renderScaleCombobox:addOption('75%', 75)
+  renderScaleCombobox:addOption('100%', 100)
+  renderScaleCombobox:addOption('150%', 150)
+  renderScaleCombobox:addOption('200%', 200)
+
+  renderScaleCombobox.onOptionChange = function(comboBox, option)
+    setOption('renderScale', comboBox:getCurrentOption().data)
   end
 
   floorShadowingComboBox= graphicsPanel:recursiveGetChildById('floorShadowing')
@@ -275,6 +290,11 @@ function setOption(key, value, force)
   elseif key == 'floorShadowing' then
     gameMapPanel:setFloorShadowingFlag(value)
     floorShadowingComboBox:setCurrentOptionByData(value, false)
+  elseif key == 'antiAliasing' then
+    gameMapPanel:setAntiAliasing(value)
+  elseif key == 'renderScale' then
+    gameMapPanel:setRenderScale(value)
+    renderScaleCombobox:setCurrentOptionByData(value, false)
   end
 
   -- change value for keybind updates
