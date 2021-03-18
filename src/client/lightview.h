@@ -60,19 +60,16 @@ struct DimensionConfig {
 struct LightSource {
     int8_t radius;
     Point center;
-    Position pos, centralPos;
     std::pair<Point, Point> extraOffset;
-    Otc::Direction dir;
     bool isEdge;
 
     // Comparison Var
-    uint8 color;
-    float brightness;
+    uint8 color = 0;
+    float brightness = 0;
 
     void reset()
     {
         radius = color = brightness = 0;
-        pos = centralPos = Position();
         extraOffset = std::make_pair(center, center);
     }
 
@@ -82,14 +79,18 @@ struct LightSource {
 };
 
 struct LightPoint {
-    LightPoint(const bool valid = true) : isValid(valid), canMove(valid) {}
+    LightPoint(const bool valid = true) : isValid(valid) {}
 
-    bool isValid, canMove;
-    std::vector<LightSource> lights;
-    Point center;
+    bool isValid;
+    std::array<std::pair<Point, std::vector<LightSource>>, Otc::MAX_Z + 1> floors;
 
-    bool hasLight() const { return !lights.empty(); }
-    void reset() { canMove = true; lights.clear(); center = Point(); }
+    void reset()
+    {
+        for(auto& light : floors) {
+            light.first = Point();
+            light.second.clear();
+        }
+    }
 };
 
 class LightView : public LuaObject
@@ -102,13 +103,15 @@ public:
     void resize();
     void reset() { m_lightMap.clear(); }
     void draw(const Rect& dest, const Rect& src);
-    void addLightSource(const Position& pos, const Point& center, float scaleFactor, const Light& light, const ThingPtr& thing = nullptr);
+    void addLightSource(const Position& pos, const Point& mainCenter, float scaleFactor, const Light& light, const ThingPtr& thing = nullptr);
 
     void setGlobalLight(const Light& light) { m_globalLight = light; }
     void schedulePainting(const uint16_t delay = FrameBuffer::MIN_TIME_UPDATE) const { if(isDark()) m_lightbuffer->schedulePainting(delay); }
 
     bool canUpdate() const { return isDark() && m_lightbuffer->canUpdate(); }
     bool isDark() const { return m_globalLight.intensity < 250; }
+    void resetBrightness(const Position& pos);
+    void setFloor(const uint8 floor) { m_currentFloor = floor; }
 
 private:
     const DimensionConfig& getDimensionConfig(const uint8 intensity);
@@ -127,6 +130,7 @@ private:
     FrameBufferPtr m_lightbuffer;
     MapViewPtr m_mapView;
 
+    uint8 m_currentFloor;
     std::vector<LightPoint> m_lightMap;
     std::array<DimensionConfig, MAX_LIGHT_INTENSITY> m_dimensionCache;
 };

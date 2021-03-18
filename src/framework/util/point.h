@@ -40,6 +40,7 @@ public:
 
     bool isNull() const { return x == 0 && y == 0; }
     TSize<T> toSize() const { return TSize<T>(x, y); }
+    TPoint translated(int32 dx, int32 dy) const { TPoint point = *this; point.x += dx; point.y += dy; return point; }
 
     TPoint<T> operator-() const { return TPoint<T>(-x, -y); }
 
@@ -79,6 +80,23 @@ public:
     float distanceFrom(const TPoint<T>& other) const
     {
         return TPoint<T>(x - other.x, y - other.y).length();
+    }
+
+    std::array<TPoint, (uint8)8> getPointsAround(const uint8 pixel = Otc::TILE_PIXELS) const
+    {
+        std::array<TPoint, (uint8)8> positions;
+        int_fast8_t i = -1;
+        for(int_fast32_t xi = -1; xi <= 1; ++xi) {
+            for(int_fast32_t yi = -1; yi <= 1; ++yi) {
+                const TPoint pos = translated(xi * pixel, yi * pixel);
+                if(pos == *this)
+                    continue;
+
+                positions[++i] = pos;
+            }
+        }
+
+        return positions;
     }
 
     T x, y;

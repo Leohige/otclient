@@ -113,12 +113,23 @@ void MapView::draw(const Rect& rect)
 
         g_painter->resetColor();
         for(int_fast8_t z = m_floorMax; z >= m_floorMin; --z) {
+            const auto& tiles = m_cachedVisibleTiles[z];
+            if(lightView) {
+                lightView->setFloor(z);
+                for(const auto& tile : tiles) {
+                    const auto& ground = tile->getGround();
+                    if(ground && !ground->isTranslucent()) {
+                        lightView->resetBrightness(tile->getPosition());
+                    }
+                }
+            }
+
             onFloorDrawingStart(z);
 
 #if DRAW_ALL_GROUND_FIRST == 1
             drawSeparately(z, viewPort, lightView);
 #else
-            for(const auto& tile : m_cachedVisibleTiles[z]) {
+            for(const auto& tile : tiles) {
                 const auto hasLight = redrawLight && tile->hasLight();
 
                 if(!redrawThing && !hasLight || !canRenderTile(tile, viewPort, lightView)) continue;
@@ -126,18 +137,18 @@ void MapView::draw(const Rect& rect)
                 tile->drawStart(this);
                 tile->draw(transformPositionTo2D(tile->getPosition(), cameraPosition), m_scaleFactor, m_frameCache.flags, lightView);
                 tile->drawEnd(this);
-            }
+        }
 #endif
             for(const MissilePtr& missile : g_map.getFloorMissiles(z)) {
                 missile->draw(transformPositionTo2D(missile->getPosition(), cameraPosition), m_scaleFactor, m_frameCache.flags, lightView);
             }
 
             onFloorDrawingEnd(z);
-        }
+    }
 
         if(redrawThing)
             m_frameCache.tile->release();
-    }
+}
 
     // generating mipmaps each frame can be slow in older cards
     //m_framebuffer->getTexture()->buildHardwareMipmaps();

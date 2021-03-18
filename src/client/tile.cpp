@@ -71,11 +71,13 @@ void Tile::onAddVisibleTileList(const MapViewPtr& mapView)
     }
 }
 
-bool Tile::isCompletelyCovered(int firstFloor)
+bool Tile::isCompletelyCovered(int8 firstFloor)
 {
-    m_completelyCovered = g_map.isCompletelyCovered(m_position, firstFloor);
-    if(!(m_covered = m_completelyCovered)) {
-        m_covered = g_map.isCovered(m_position, firstFloor);
+    if(firstFloor > -1) {
+        m_completelyCovered = g_map.isCompletelyCovered(m_position, firstFloor);
+        if(!(m_covered = m_completelyCovered)) {
+            m_covered = g_map.isCovered(m_position, firstFloor);
+        }
     }
 
     return m_completelyCovered;
