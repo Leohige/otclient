@@ -106,9 +106,9 @@ public:
     void addLightSource(const Position& pos, const Point& mainCenter, float scaleFactor, const Light& light, const ThingPtr& thing = nullptr);
 
     void setGlobalLight(const Light& light) { m_globalLight = light; }
-    void schedulePainting(const uint16_t delay = FrameBuffer::MIN_TIME_UPDATE) const { if(isDark()) m_lightbuffer->schedulePainting(delay); }
+    void schedulePainting(const uint16_t delay = FrameBuffer::MIN_TIME_UPDATE) const { if(isDark() && m_lightbuffer) m_lightbuffer->schedulePainting(delay); }
 
-    bool canUpdate() const { return isDark() && m_lightbuffer->canUpdate(); }
+    bool canUpdate() const { return isDark() && m_lightbuffer && m_lightbuffer->canUpdate(); }
     bool isDark() const { return m_globalLight.intensity < 250; }
     void resetBrightness(const Position& pos);
     void setFloor(const uint8 floor) { m_currentFloor = floor; }
@@ -118,13 +118,13 @@ private:
     const TexturePtr generateLightBubble();
 
     void drawLights();
-    void drawGlobalLight() const;
     void drawLightSource(const LightSource& light);
 
     bool canDraw(const Position& pos, float& brightness);
     LightPoint& getLightPoint(const Position& pos);
 
     TexturePtr m_lightTexture;
+    TexturePtr m_borderTexture;
     Light m_globalLight;
 
     FrameBufferPtr m_lightbuffer;

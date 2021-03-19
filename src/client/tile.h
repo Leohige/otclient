@@ -157,6 +157,7 @@ public:
     const bool isCovered() { return m_covered; };
     const bool blockLight() { return m_countFlag.hasNoWalkableEdge && !hasGround(); };
     const bool hasGround() { return getGround() != nullptr; };
+    const std::array<Position, 8> getPositionsAround() { return m_positionsAround; }
 
 private:
     struct CountFlag {

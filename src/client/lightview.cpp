@@ -37,14 +37,37 @@ LightView::LightView(const MapViewPtr& mapView)
     m_lightbuffer = g_framebuffers.createFrameBuffer();
     m_lightTexture = generateLightBubble();
 
+    const uint8 intensityVariant = 0xFF;
+    const float centerFactor = .5;
+
+    const uint16 borderRadius = 4,
+        centerRadius = borderRadius * centerFactor,
+        bubbleDiameter = borderRadius * 2;
+
+    ImagePtr lightImage = ImagePtr(new Image(Size(bubbleDiameter, bubbleDiameter)));
+
+    for(int_fast16_t x = -1; ++x < bubbleDiameter;) {
+        for(int_fast16_t y = -1; ++y < bubbleDiameter;) {
+            const float radius = (borderRadius - x) * (borderRadius - x) + (borderRadius - y) * (borderRadius - y);
+            const float intensity = stdext::clamp<float>((borderRadius - radius) / static_cast<float>(borderRadius - centerRadius), .0, 1.);
+
+            uint8_t pixel[4] = { 255, 255, 255, intensity < .05 ? 0 : 255 };
+            lightImage->setPixel(x, y, pixel);
+        }
+    }
+
+    m_borderTexture = TexturePtr(new Texture(lightImage, true));
+    m_borderTexture->setSmooth(true);
+
+
     reset();
     resize();
 }
 
 const TexturePtr LightView::generateLightBubble()
 {
-    const uint8 intensityVariant = 0xB4;
-    const float centerFactor = .0f;
+    const uint8 intensityVariant = 0xFF;
+    const float centerFactor = .5;
 
     const uint16 bubbleRadius = 5,
         centerRadius = bubbleRadius * centerFactor,
@@ -58,9 +81,9 @@ const TexturePtr LightView::generateLightBubble()
             const float intensity = stdext::clamp<float>((bubbleRadius - radius) / static_cast<float>(bubbleRadius - centerRadius), .0f, 1.0f);
 
             // light intensity varies inversely with the square of the distance
-            const uint8_t colorByte = std::min<float>(intensity * intensity, .4) * intensityVariant;
+            const uint8_t colorByte = std::min<float>(intensity * intensity, 0.7) * intensityVariant;
 
-            uint8_t pixel[4] = { colorByte, colorByte, colorByte, 0xFF };
+            uint8_t pixel[4] = { 255, 255, 255, colorByte };
             lightImage->setPixel(x, y, pixel);
         }
     }
@@ -80,36 +103,19 @@ void LightView::addLightSource(const Position& pos, const Point& mainCenter, flo
     const float extraRadius = intensity > 1 ? 2 : 1.1;
 #endif
 
-    std::pair<Point, Point> extraOffset;
-
     // (pos.isValid() == false) is a Missile
-    Otc::Direction dir = Otc::InvalidDirection;
-    bool isStaticThing = !thing || !thing->isCreature();
-    if(thing && thing->isCreature()) {
-        const CreaturePtr& creature = thing->static_self_cast<Creature>();
-        const Point& centerPoint = Point(1, 1) * (Otc::TILE_PIXELS / 2);
-
-        extraOffset.first = centerPoint;
-        extraOffset.second = creature->getWalkOffset() + centerPoint;
-        dir = creature->getDirection();
-    }
-
     const uint16 radius = (Otc::TILE_PIXELS * scaleFactor) * extraRadius;
     const auto& centralPos = pos.isValid() ? pos : m_mapView->getPosition(mainCenter, m_mapView->m_srcRect.size());
     const auto& dimension = getDimensionConfig(intensity);
     for(const auto& position : dimension.positions)
     {
-        const auto& lightPos = centralPos.translated(position.x, position.y);
-        auto& lightPoint = getLightPoint(lightPos);
-        if(!lightPoint.isValid) continue;
+        const Point& center = mainCenter + (position.point * Otc::TILE_PIXELS);
 
-        const Point& center = m_mapView->transformPositionTo2D(lightPos, m_mapView->getCameraPosition()) + extraOffset.second;
+        size_t index = (m_mapView->m_drawDimension.width() * (center.y / Otc::TILE_PIXELS)) + (center.x / Otc::TILE_PIXELS);
+        if(index >= m_lightMap.size()) continue;
+        auto& lightPoint = m_lightMap[index];
 
         float brightness = position.brightness;
-
-        /*if(!canDraw(lightPos, brightness)) {
-            continue;
-        }*/
 
         bool gotoNextLight = false;
         for(auto& prevLight : lightPoint.floors[m_currentFloor].second) {
@@ -120,7 +126,7 @@ void LightView::addLightSource(const Position& pos, const Point& mainCenter, flo
             }
         }
 
-        if(gotoNextLight) continue;
+        //if(gotoNextLight) continue;
 
         LightSource lightSource;
         lightSource.color = light.color;
@@ -185,7 +191,7 @@ const DimensionConfig& LightView::getDimensionConfig(const uint8 intensity)
                 }
             }
         }
-    }
+}
 
     return dimension;
 }
@@ -233,11 +239,6 @@ bool LightView::canDraw(const Position& pos, float& brightness)
     return true;
 }
 
-void LightView::drawGlobalLight() const
-{
-
-}
-
 void LightView::drawLights()
 {
     // GlobalLight
@@ -253,18 +254,11 @@ void LightView::drawLights()
     g_painter->drawFilledRect(Rect(0, 0, m_lightbuffer->getSize()));
 
     // Lights
-    g_painter->setCompositionMode(Painter::CompositionMode_Add);
-    g_painter->setBlendEquation(Painter::BlendEquation_Add);
+    g_painter->setCompositionMode(Painter::CompositionMode_Normal);
     for(int_fast8_t z = m_mapView->m_floorMax; z >= m_mapView->m_floorMin; --z) {
         for(LightPoint& lightPoint : m_lightMap) {
             auto& floor = lightPoint.floors[z];
-
             if(floor.first.isNull()) continue;
-
-            g_painter->setColor(globalColor);
-            g_painter->setBlendEquation(Painter::BlendEquation_Min);
-            //g_painter->drawFilledRect(Rect(floor.first, Size(Otc::TILE_PIXELS, Otc::TILE_PIXELS)));
-
 
             bool isEdge = false;
             for(auto& point : floor.first.getPointsAround()) {
@@ -278,21 +272,11 @@ void LightView::drawLights()
                 }
             }
 
+            g_painter->setColor(globalColor);
             if(isEdge) {
-                { // Debug
-                    g_painter->setColor(Color::red);
-                    g_painter->setBlendEquation(Painter::BlendEquation_Add);
-                    g_painter->drawFilledRect(Rect(floor.first, Size(Otc::TILE_PIXELS, Otc::TILE_PIXELS)));
-                }
-
-                /*g_painter->setBlendEquation(Painter::BlendEquation_Rever_Subtract);
-                LightSource lightSource;
-                lightSource.center = floor.first;
-                lightSource.brightness = 1;
-                lightSource.color = 255;
-                lightSource.radius = 50;
-
-                drawLightSource(lightSource);*/
+                const uint8 size = 61;
+                const Rect dest = Rect((floor.first + (Otc::TILE_PIXELS / 4)) - Point(size, size), Size(size * 2, size * 2));
+                g_painter->drawTexturedRect(dest, m_borderTexture);
             } else {
                 g_painter->drawFilledRect(Rect(floor.first, Size(Otc::TILE_PIXELS, Otc::TILE_PIXELS)));
             }
@@ -317,7 +301,10 @@ void LightView::drawLightSource(const LightSource& light)
     const Rect dest = Rect(light.center - Point(light.radius, light.radius), Size(light.radius * 2, light.radius * 2));
     const auto brightness = light.brightness - ((m_globalLight.intensity / static_cast<float>(MAX_AMBIENT_LIGHT_INTENSITY) / 4));
 
-    g_painter->setColor(Color::from8bit(light.color, brightness));
+    Color color = Color::from8bit(light.color, brightness);
+    color.setAlpha(brightness);
+
+    g_painter->setColor(color);
     g_painter->drawTexturedRect(dest, m_lightTexture);
 }
 
@@ -335,10 +322,7 @@ void LightView::draw(const Rect& dest, const Rect& src)
     g_painter->saveAndResetState();
     if(m_lightbuffer->canUpdate()) {
         m_lightbuffer->bind();
-
-        drawGlobalLight();
         drawLights();
-
         m_lightbuffer->release();
     }
     g_painter->setCompositionMode(Painter::CompositionMode_Light);

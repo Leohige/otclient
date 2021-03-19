@@ -72,6 +72,7 @@ void Creature::draw(const Point& dest, float scaleFactor, bool animate, const Hi
     if(!canBeSeen())
         return;
 
+
     if(frameFlags & Otc::FUpdateThing) {
         if(m_showTimedSquare) {
             g_painter->setColor(m_timedSquareColor);
@@ -105,7 +106,7 @@ void Creature::draw(const Point& dest, float scaleFactor, bool animate, const Hi
         }
 
         if(light.intensity > 0) {
-            lightView->addLightSource(m_position, dest, scaleFactor, light, this);
+            lightView->addLightSource(m_position, dest + (m_walkOffset + (Point(Otc::TILE_PIXELS, Otc::TILE_PIXELS) / 2)) * scaleFactor, scaleFactor, light, this);
         }
     }
 }

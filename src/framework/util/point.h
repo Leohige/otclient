@@ -34,13 +34,13 @@ template<class T>
 class TPoint
 {
 public:
-    TPoint() : x(0), y(0) {}
-    TPoint(T x, T y) : x(x), y(y) {}
-    TPoint(const TPoint<T>& other) : x(other.x), y(other.y) {}
+    TPoint() : x(0), y(0), diffX(0), diffY(0) {}
+    TPoint(T x, T y) : x(x), y(y), diffX(0), diffY(0) {}
+    TPoint(const TPoint<T>& other) : x(other.x), y(other.y), diffX(other.diffX), diffY(other.diffY) {}
 
     bool isNull() const { return x == 0 && y == 0; }
     TSize<T> toSize() const { return TSize<T>(x, y); }
-    TPoint translated(int32 dx, int32 dy) const { TPoint point = *this; point.x += dx; point.y += dy; return point; }
+    TPoint<T> translated(T dx, T dy, T diffX = 0, T diffY = 0) const { TPoint<T> point = *this; point.x += dx; point.y += dy; point.diffX = diffX; point.diffY = diffY; return point; }
 
     TPoint<T> operator-() const { return TPoint<T>(-x, -y); }
 
@@ -70,7 +70,7 @@ public:
     bool operator<(const TPoint<T>& other) const { return x < other.x&& y < other.y; }
     bool operator>(const TPoint<T>& other) const { return x > other.x && y > other.y; }
 
-    TPoint<T>& operator=(const TPoint<T>& other) { x = other.x; y = other.y; return *this; }
+    TPoint<T>& operator=(const TPoint<T>& other) { x = other.x; y = other.y; diffX = other.diffX; diffY = other.diffY; return *this; }
     bool operator==(const TPoint<T>& other) const { return other.x == x && other.y == y; }
     bool operator!=(const TPoint<T>& other) const { return other.x != x || other.y != y; }
 
@@ -82,13 +82,13 @@ public:
         return TPoint<T>(x - other.x, y - other.y).length();
     }
 
-    std::array<TPoint, (uint8)8> getPointsAround(const uint8 pixel = Otc::TILE_PIXELS) const
+    std::array<TPoint<T>, (uint8)8> getPointsAround(const uint8 pixel = Otc::TILE_PIXELS) const
     {
-        std::array<TPoint, (uint8)8> positions;
+        std::array<TPoint<T>, (uint8)8> positions;
         int_fast8_t i = -1;
         for(int_fast32_t xi = -1; xi <= 1; ++xi) {
             for(int_fast32_t yi = -1; yi <= 1; ++yi) {
-                const TPoint pos = translated(xi * pixel, yi * pixel);
+                const TPoint<T>& pos = translated(xi * pixel, yi * pixel, xi, yi);
                 if(pos == *this)
                     continue;
 
@@ -99,7 +99,7 @@ public:
         return positions;
     }
 
-    T x, y;
+    T x, y, diffX, diffY;
 };
 
 typedef TPoint<int> Point;
