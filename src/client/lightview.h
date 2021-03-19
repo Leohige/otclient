@@ -60,7 +60,6 @@ struct DimensionConfig {
 struct LightSource {
     int8_t radius;
     Point center;
-    std::pair<Point, Point> extraOffset;
     bool isEdge;
 
     // Comparison Var
@@ -70,12 +69,10 @@ struct LightSource {
     void reset()
     {
         radius = color = brightness = 0;
-        extraOffset = std::make_pair(center, center);
     }
 
     bool hasLight() const { return color > 0; }
     bool isValid() const { return radius > -1; }
-    bool isMoving() const { return extraOffset.first != extraOffset.second; }
 };
 
 struct LightPoint {
@@ -103,25 +100,26 @@ public:
     void resize();
     void reset() { m_lightMap.clear(); }
     void draw(const Rect& dest, const Rect& src);
-    void addLightSource(const Position& pos, const Point& mainCenter, float scaleFactor, const Light& light, const ThingPtr& thing = nullptr);
+    void addLightSource(const Point& mainCenter, float scaleFactor, const Light& light, const bool isMoving);
 
     void setGlobalLight(const Light& light) { m_globalLight = light; }
     void schedulePainting(const uint16_t delay = FrameBuffer::MIN_TIME_UPDATE) const { if(isDark() && m_lightbuffer) m_lightbuffer->schedulePainting(delay); }
 
     bool canUpdate() const { return isDark() && m_lightbuffer && m_lightbuffer->canUpdate(); }
     bool isDark() const { return m_globalLight.intensity < 250; }
-    void resetBrightness(const Position& pos);
+    void resetBrightness(const Point& point);
     void setFloor(const uint8 floor) { m_currentFloor = floor; }
 
 private:
     const DimensionConfig& getDimensionConfig(const uint8 intensity);
-    const TexturePtr generateLightBubble();
+
+    void generateLightTexture();
+    void generateBorderTexture();
 
     void drawLights();
-    void drawLightSource(const LightSource& light);
 
     bool canDraw(const Position& pos, float& brightness);
-    LightPoint& getLightPoint(const Position& pos);
+    LightPoint& getLightPoint(const Point& point);
 
     TexturePtr m_lightTexture;
     TexturePtr m_borderTexture;
@@ -131,8 +129,9 @@ private:
     MapViewPtr m_mapView;
 
     uint8 m_currentFloor;
-    std::vector<LightPoint> m_lightMap;
     std::array<DimensionConfig, MAX_LIGHT_INTENSITY> m_dimensionCache;
+    std::array<std::vector<LightPoint>, Otc::MAX_Z + 1> floors;
+    std::vector<LightPoint> m_lightMap;
 };
 
 #endif
