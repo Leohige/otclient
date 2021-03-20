@@ -350,7 +350,7 @@ void Tile::addThing(const ThingPtr& thing, int stackPos)
         } else if(thing->isOnBottom()) {
             m_bottomItems.push_back(item);
         } else {
-            originalStack -= m_ground.size() + m_bottomItems.size() + m_creatures.size();
+            originalStack -= m_ground.size() + m_bottomItems.size() + m_topItems.size() + m_creatures.size();
 
             if(originalStack > m_commonItems.size()) {
                 m_commonItems.push_back(item);
@@ -581,9 +581,9 @@ ThingPtr Tile::getTopUseThing()
         if(item->isForceUse()) return item;
     }
 
-    if(!m_topItems.empty()) return m_topItems.back();
     if(!m_commonItems.empty()) return m_commonItems.front();
     if(!m_bottomItems.empty()) return m_bottomItems.back();
+    if(!m_topItems.empty()) return m_topItems.back();
 
     return m_ground.front();
 }
@@ -897,6 +897,7 @@ void Tile::analyzeThing(const ThingPtr& thing, bool add)
     if(thing->isGroundBorder() && thing->isNotWalkable())
         m_countFlag.hasNoWalkableEdge += value;
 
+#if CHECK_OPAQUE_ITEM == 1
     // Check that the item is opaque, so that it does not draw anything that is less than or equal below it.
     if(thing->isOpaque() && !thing->isOnTop() && !thing->isGround() && !thing->isGroundBorder()) {
         const int commonSize = m_commonItems.size();
@@ -938,6 +939,7 @@ void Tile::analyzeThing(const ThingPtr& thing, bool add)
             }
         }
     }
+#endif
 }
 
 void Tile::select()

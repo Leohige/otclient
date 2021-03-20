@@ -528,6 +528,8 @@ void MapView::onFloorChange(const uint8 /*floor*/, const uint8 /*previousFloor*/
 
     m_visibleCreatures = getSpectators(cameraPosition, false);
 
+    schedulePainting(Otc::FUpdateCreatureInformation, FrameBuffer::FORCE_UPDATE);
+
     updateLight();
 }
 
