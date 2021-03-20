@@ -40,7 +40,7 @@ public:
 
     bool isNull() const { return x == 0 && y == 0; }
     TSize<T> toSize() const { return TSize<T>(x, y); }
-    TPoint<T> translated(T dx, T dy, T diffX = 0, T diffY = 0) const { TPoint<T> point = *this; point.x += dx; point.y += dy; point.diffX = diffX; point.diffY = diffY; return point; }
+    TPoint<T> translated(T dx, T dy, int8 diffX = 0, int8 diffY = 0) const { TPoint<T> point = *this; point.x += dx; point.y += dy; point.diffX = diffX; point.diffY = diffY; return point; }
 
     TPoint<T> operator-() const { return TPoint<T>(-x, -y); }
 
@@ -99,7 +99,8 @@ public:
         return positions;
     }
 
-    T x, y, diffX, diffY;
+    T x, y;
+    int8 diffX, diffY;
 };
 
 typedef TPoint<int> Point;

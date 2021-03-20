@@ -102,7 +102,7 @@ void LightView::addLightSource(const Point& mainCenter, float scaleFactor, const
 #if DEBUG_BUBBLE == 1
     const float extraRadius = 1;
 #else
-    const float extraRadius = intensity > 1 ? 2 : 1.1;
+    const float extraRadius = intensity > 1 ? 2.5 : 1.1;
 #endif
 
     const uint16 radius = (Otc::TILE_PIXELS * scaleFactor) * extraRadius;
@@ -229,8 +229,8 @@ void LightView::drawLights()
 
                 const auto& point = lightPoint.resetBrightness.second;
                 bool isEdge = false;
-                for(auto& point : point.getPointsAround()) {
-                    const auto& lightPointAround = getLightPoint(point);
+                for(auto& pointAround : point.getPointsAround()) {
+                    const auto& lightPointAround = getLightPoint(pointAround);
                     if(lightPointAround.resetBrightness.first == z) {
                         isEdge = true;
                         break;
