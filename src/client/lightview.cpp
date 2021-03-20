@@ -70,7 +70,7 @@ void LightView::generateBorderTexture()
 void LightView::generateLightTexture()
 {
     const uint8 intensityVariant = 0xFF;
-    const float centerFactor = .5;
+    const float centerFactor = .0;
 
     const uint16 bubbleRadius = 5,
         centerRadius = bubbleRadius * centerFactor,
@@ -102,7 +102,7 @@ void LightView::addLightSource(const Point& mainCenter, float scaleFactor, const
 #if DEBUG_BUBBLE == 1
     const float extraRadius = 1;
 #else
-    const float extraRadius = intensity > 1 ? 2.5 : 1.1;
+    const float extraRadius = intensity > 1 ? 2 : 1.1;
 #endif
 
     const uint16 radius = (Otc::TILE_PIXELS * scaleFactor) * extraRadius;
@@ -117,7 +117,7 @@ void LightView::addLightSource(const Point& mainCenter, float scaleFactor, const
         float brightness = position.brightness;
 
         bool gotoNextLight = false;
-        for(auto& prevLight : lightPoint.floors[m_currentFloor].second) {
+        for(auto& prevLight : lightPoint.floors[m_currentFloor]) {
             if(prevLight.color == light.color && prevLight.center == center) {
                 prevLight.brightness = std::max<float>(prevLight.brightness, brightness);
                 gotoNextLight = true;
@@ -127,14 +127,8 @@ void LightView::addLightSource(const Point& mainCenter, float scaleFactor, const
 
         if(gotoNextLight) continue;
 
-        LightSource lightSource;
-        lightSource.color = light.color;
-        lightSource.radius = radius;
-        lightSource.brightness = brightness;
-        lightSource.isEdge = position.isEdge;
-        lightSource.center = center;
 
-        lightPoint.floors[m_currentFloor].second.push_back(lightSource);
+        lightPoint.floors[m_currentFloor].push_back({ center , light.color, brightness , radius, isMoving });
     }
 }
 
@@ -156,7 +150,7 @@ const DimensionConfig& LightView::getDimensionConfig(const uint8 intensity)
 #endif
 
             auto pushLight = [&](const int8 x, const int8 y) -> void {
-                const float brightness = startBrightness - ((std::max<float>(std::abs(x), std::abs(y))) / 10);
+                const float brightness = startBrightness - ((std::max<float>(std::abs(x), std::abs(y))) / intensity);
                 dimension.positions.push_back(PositionLight(x, y, brightness));
             };
 
@@ -205,31 +199,9 @@ LightPoint& LightView::getLightPoint(const Point& point)
 
 void LightView::resetBrightness(const Point& point)
 {
-    auto& light = getLightPoint(point);
-    if(light.isValid)
-        light.floors[m_currentFloor].first = point;
-}
-
-bool LightView::canDraw(const Position& pos, float& brightness)
-{
-    TilePtr tile = g_map.getTile(pos);
-    if(!tile || tile->isCovered() || tile->isTopGround() && !tile->hasBottomToDraw() || !tile->hasGround()) {
-        return false;
-    }
-
-    Position tilePos = pos;
-    while(tilePos.coveredUp() && tilePos.z >= m_mapView->getCachedFirstVisibleFloor()) {
-        tile = g_map.getTile(tilePos);
-        if(tile) {
-            if(tile->blockLight() || tile->isTopGround()) {
-                return false;
-            }
-
-            brightness -= 0.05;
-        }
-    }
-
-    return true;
+    auto& lightPoint = getLightPoint(point);
+    if(lightPoint.isValid)
+        lightPoint.resetBrightness = { m_currentFloor, point };
 }
 
 void LightView::drawLights()
@@ -252,13 +224,14 @@ void LightView::drawLights()
         if(z < m_mapView->m_floorMax) {
             g_painter->setBlendEquation(Painter::BlendEquation_Add);
             for(LightPoint& lightPoint : m_lightMap) {
-                auto& floor = lightPoint.floors[z];
-                if(floor.first.isNull()) continue;
+                const auto& floor = lightPoint.resetBrightness.first;
+                if(floor != z) continue;
 
+                const auto& point = lightPoint.resetBrightness.second;
                 bool isEdge = false;
-                for(auto& point : floor.first.getPointsAround()) {
-                    const auto& light = getLightPoint(point);
-                    if(light.floors[z].first.isNull()) {
+                for(auto& point : point.getPointsAround()) {
+                    const auto& lightPointAround = getLightPoint(point);
+                    if(lightPointAround.resetBrightness.first == z) {
                         isEdge = true;
                         break;
                     }
@@ -267,21 +240,25 @@ void LightView::drawLights()
                 g_painter->setColor(globalColor);
                 if(isEdge) {
                     const uint8 size = 61;
-                    const Rect dest = Rect((floor.first + (Otc::TILE_PIXELS / 4)) - Point(size, size), Size(size * 2, size * 2));
+                    const Rect dest = Rect((point + (Otc::TILE_PIXELS / 4)) - Point(size, size), Size(size * 2, size * 2));
                     g_painter->drawTexturedRect(dest, m_borderTexture);
                 } else {
-                    g_painter->drawFilledRect(Rect(floor.first, Size(Otc::TILE_PIXELS, Otc::TILE_PIXELS)));
+                    // It isn't necessary to paint the background black.
+                    // g_painter->drawFilledRect(Rect(point, Size(Otc::TILE_PIXELS, Otc::TILE_PIXELS)));
                 }
             }
         }
 
         g_painter->setBlendEquation(Painter::BlendEquation_Add);
-        for(LightPoint& lightPoint : m_lightMap) {
-            for(const auto& light : lightPoint.floors[z].second) {
+        for(auto& lightPoint : m_lightMap) {
+            const bool isCovered = lightPoint.isCovered(z);
+            for(const auto& light : lightPoint.floors[z]) {
+                if(isCovered && !light.isMoving) continue;
+
                 const Rect dest = Rect(light.center - Point(light.radius, light.radius), Size(light.radius * 2, light.radius * 2));
                 const auto brightness = light.brightness - ((m_globalLight.intensity / static_cast<float>(MAX_AMBIENT_LIGHT_INTENSITY) / 4));
 
-                Color color = Color::from8bit(light.color, brightness);
+                Color color = Color::from8bit(light.color);
                 color.setAlpha(brightness);
 
                 g_painter->setColor(color);
