@@ -57,8 +57,7 @@ void LightView::generateBorderTexture()
         for(int_fast16_t y = -1; ++y < bubbleDiameter;) {
             const float radius = (borderRadius - x) * (borderRadius - x) + (borderRadius - y) * (borderRadius - y);
             const float intensity = stdext::clamp<float>((borderRadius - radius) / static_cast<float>(borderRadius - centerRadius), .0, 1.);
-
-            uint8_t pixel[4] = { 0xFF, 0xFF, 0xFF, intensity < .05 ? 0x0 : 0xFF };
+            uint8_t pixel[4] = { 255, 255, 255, static_cast<uint8>(intensity < .05 ? 0 : 255) };
             lightImage->setPixel(x, y, pixel);
         }
     }
@@ -109,7 +108,7 @@ void LightView::addLightSource(const Point& mainCenter, float scaleFactor, const
     const auto& dimension = getDimensionConfig(intensity);
     for(const auto& position : dimension.positions)
     {
-        const Point& center = mainCenter + (position.point * Otc::TILE_PIXELS);
+        const Point& center = mainCenter + (position.point * m_mapView->m_tileSize);
 
         auto& lightPoint = getLightPoint(center);
         if(!lightPoint.isValid) continue;
@@ -151,7 +150,7 @@ const DimensionConfig& LightView::getDimensionConfig(const uint8 intensity)
 
             auto pushLight = [&](const int8 x, const int8 y) -> void {
                 const float brightness = startBrightness - ((std::max<float>(std::abs(x), std::abs(y))) / intensity);
-                dimension.positions.push_back(PositionLight(x, y, brightness));
+                dimension.positions.push_back({ x, y, brightness });
             };
 
             uint8 i = 1;
@@ -192,7 +191,7 @@ const DimensionConfig& LightView::getDimensionConfig(const uint8 intensity)
 static LightPoint INVALID_LIGHT_POINT(false);
 LightPoint& LightView::getLightPoint(const Point& point)
 {
-    size_t index = (m_mapView->m_drawDimension.width() * (point.y / Otc::TILE_PIXELS)) + (point.x / Otc::TILE_PIXELS);
+    size_t index = (m_mapView->m_drawDimension.width() * (point.y / m_mapView->m_tileSize)) + (point.x / m_mapView->m_tileSize);
     if(index >= m_lightMap.size()) return INVALID_LIGHT_POINT;
     return m_lightMap[index];
 }
@@ -229,9 +228,9 @@ void LightView::drawLights()
 
                 const auto& point = lightPoint.resetBrightness.second;
                 bool isEdge = false;
-                for(auto& pointAround : point.getPointsAround()) {
+                for(auto& pointAround : point.getPointsAround(m_mapView->m_tileSize)) {
                     const auto& lightPointAround = getLightPoint(pointAround);
-                    if(lightPointAround.resetBrightness.first == z) {
+                    if(lightPointAround.resetBrightness.first != z) {
                         isEdge = true;
                         break;
                     }
@@ -239,12 +238,11 @@ void LightView::drawLights()
 
                 g_painter->setColor(globalColor);
                 if(isEdge) {
-                    const uint8 size = 61;
-                    const Rect dest = Rect((point + (Otc::TILE_PIXELS / 4)) - Point(size, size), Size(size * 2, size * 2));
+                    const uint8 size = 61 * (m_mapView->m_renderScale / 100);
+                    const Rect dest = Rect((point + (m_mapView->m_tileSize / 4)) - Point(size, size), Size(size * 2, size * 2));
                     g_painter->drawTexturedRect(dest, m_borderTexture);
                 } else {
-                    // It isn't necessary to paint the background black.
-                    // g_painter->drawFilledRect(Rect(point, Size(Otc::TILE_PIXELS, Otc::TILE_PIXELS)));
+                    g_painter->drawFilledRect(Rect(point, Size(m_mapView->m_tileSize, m_mapView->m_tileSize)));
                 }
             }
         }

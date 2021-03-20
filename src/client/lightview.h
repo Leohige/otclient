@@ -75,8 +75,7 @@ struct LightPoint {
 
     void reset()
     {
-        resetBrightness.first = -1;
-
+        resetBrightness = { -1, {} };
         for(auto& lights : floors)
             lights.clear();
     }

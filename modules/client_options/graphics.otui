@@ -94,7 +94,7 @@ Panel
     id: ambientLightLabel
     anchors.left: parent.left
     anchors.right: parent.right
-    anchors.top: lightVersionLabel.top
+    anchors.top: floorShadowingLabel.top
     margin-top: 25
     @onSetup: |
       local value = modules.client_options.getOption('ambientLight')
