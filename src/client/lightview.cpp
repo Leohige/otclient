@@ -28,8 +28,6 @@
 #include "mapview.h"
 #include "map.h"
 
-#define DEBUG_BUBBLE 0
-
 LightView::LightView(const MapViewPtr& mapView)
 {
     m_mapView = mapView;
@@ -44,20 +42,13 @@ LightView::LightView(const MapViewPtr& mapView)
 
 void LightView::generateBorderTexture()
 {
-    const uint8 intensityVariant = 0xFF;
-    const float centerFactor = .5;
+    const uint16 diameter = 6;
 
-    const uint16 borderRadius = 4,
-        centerRadius = borderRadius * centerFactor,
-        bubbleDiameter = borderRadius * 2;
-
-    ImagePtr lightImage = ImagePtr(new Image(Size(bubbleDiameter, bubbleDiameter)));
-
-    for(int_fast16_t x = -1; ++x < bubbleDiameter;) {
-        for(int_fast16_t y = -1; ++y < bubbleDiameter;) {
-            const float radius = (borderRadius - x) * (borderRadius - x) + (borderRadius - y) * (borderRadius - y);
-            const float intensity = stdext::clamp<float>((borderRadius - radius) / static_cast<float>(borderRadius - centerRadius), .0, 1.);
-            uint8_t pixel[4] = { 255, 255, 255, static_cast<uint8>(intensity < .05 ? 0 : 255) };
+    const ImagePtr lightImage = ImagePtr(new Image(Size(diameter, diameter)));
+    for(int_fast16_t x = -1; ++x < diameter;) {
+        for(int_fast16_t y = -1; ++y < diameter;) {
+            const uint8 alpha = x == 0 || y == 0 || x == diameter - 1 || y == diameter - 1 ? 0 : 255;
+            uint8_t pixel[4] = { 255, 255, 255, alpha };
             lightImage->setPixel(x, y, pixel);
         }
     }
@@ -68,22 +59,19 @@ void LightView::generateBorderTexture()
 
 void LightView::generateLightTexture()
 {
-    const uint8 intensityVariant = 0xFF;
-    const float centerFactor = .0;
-
+    const float centerFactor = .2;
     const uint16 bubbleRadius = 5,
         centerRadius = bubbleRadius * centerFactor,
         bubbleDiameter = bubbleRadius * 2;
 
-    ImagePtr lightImage = ImagePtr(new Image(Size(bubbleDiameter, bubbleDiameter)));
-
+    const ImagePtr lightImage = ImagePtr(new Image(Size(bubbleDiameter, bubbleDiameter)));
     for(int_fast16_t x = -1; ++x < bubbleDiameter;) {
         for(int_fast16_t y = -1; ++y < bubbleDiameter;) {
             const float radius = std::sqrt((bubbleRadius - x) * (bubbleRadius - x) + (bubbleRadius - y) * (bubbleRadius - y));
             const float intensity = stdext::clamp<float>((bubbleRadius - radius) / static_cast<float>(bubbleRadius - centerRadius), .0f, 1.0f);
 
             // light intensity varies inversely with the square of the distance
-            const uint8_t colorByte = std::min<float>(intensity * intensity, 0.7) * intensityVariant;
+            const uint8_t colorByte = std::min<float>(intensity * intensity, 0.4) * 0xFF;
 
             uint8_t pixel[4] = { 255, 255, 255, colorByte };
             lightImage->setPixel(x, y, pixel);
@@ -94,31 +82,27 @@ void LightView::generateLightTexture()
     m_lightTexture->setSmooth(true);
 }
 
-void LightView::addLightSource(const Point& mainCenter, float scaleFactor, const Light& light, const bool isMoving)
+void LightView::addLightSource(const Point& mainCenter, const Light& light, const bool isStaticLight)
 {
     const uint8 intensity = std::min<uint8>(light.intensity, MAX_LIGHT_INTENSITY);
 
-#if DEBUG_BUBBLE == 1
-    const float extraRadius = 1;
-#else
-    const float extraRadius = intensity > 1 ? 2.5 : 1.1;
-#endif
-
-    const uint16 radius = (Otc::TILE_PIXELS * scaleFactor) * extraRadius;
+    const uint16 radius = (Otc::TILE_PIXELS * m_mapView->m_scaleFactor) * (intensity > 1 ? 2 : 1.1);
     const auto& dimension = getDimensionConfig(intensity);
+
     for(const auto& position : dimension.positions)
     {
         const Point& center = mainCenter + (position.point * m_mapView->m_tileSize);
 
         auto& lightPoint = getLightPoint(center);
         if(!lightPoint.isValid) continue;
+        auto& lightList = lightPoint.floors[m_currentFloor];
 
         float brightness = position.brightness;
 
         bool gotoNextLight = false;
-        for(auto& prevLight : lightPoint.floors[m_currentFloor]) {
+        for(auto& prevLight : lightList) {
             if(prevLight.color == light.color && prevLight.center == center) {
-                prevLight.brightness = std::max<float>(prevLight.brightness, brightness);
+                prevLight.brightness += brightness;
                 gotoNextLight = true;
                 break;
             }
@@ -126,8 +110,7 @@ void LightView::addLightSource(const Point& mainCenter, float scaleFactor, const
 
         if(gotoNextLight) continue;
 
-
-        lightPoint.floors[m_currentFloor].push_back({ center , light.color, brightness , radius, isMoving });
+        lightList.push_back({ center , light.color, brightness , radius, isStaticLight, position.isEdge });
     }
 }
 
@@ -142,12 +125,7 @@ const DimensionConfig& LightView::getDimensionConfig(const uint8 intensity)
         // TODO: REFATORATION REQUIRED
         // Ugly algorithm
         {
-#if DEBUG_BUBBLE == 1
-            const float startBrightness = 3;
-#else
-            const float startBrightness = intensity == 1 ? .15 : .5 + (static_cast<float>(intensity) / 20);
-#endif
-
+            const float startBrightness = intensity == 1 ? .15 : .5 + (static_cast<float>(intensity) / 10);
             auto pushLight = [&](const int8 x, const int8 y) -> void {
                 const float brightness = startBrightness - ((std::max<float>(std::abs(x), std::abs(y))) / intensity);
                 dimension.positions.push_back({ x, y, brightness });
@@ -200,7 +178,7 @@ void LightView::resetBrightness(const Point& point)
 {
     auto& lightPoint = getLightPoint(point);
     if(lightPoint.isValid)
-        lightPoint.resetBrightness = { m_currentFloor, point };
+        lightPoint.brightness = { static_cast<int8>(m_currentFloor), point, false };
 }
 
 void LightView::drawLights()
@@ -217,56 +195,70 @@ void LightView::drawLights()
     }
     g_painter->drawFilledRect(Rect(0, 0, m_lightbuffer->getSize()));
 
+    const auto& compareLights = [](const LightSource& a, const LightSource& b) -> bool const { return a.color > b.color; };
+
     // Lights
     g_painter->setCompositionMode(Painter::CompositionMode_Normal);
-    for(int_fast8_t z = m_mapView->m_floorMax; z >= m_mapView->m_floorMin; --z) {
-        if(z < m_mapView->m_floorMax) {
-            g_painter->setBlendEquation(Painter::BlendEquation_Add);
-            for(LightPoint& lightPoint : m_lightMap) {
-                const auto& floor = lightPoint.resetBrightness.first;
-                if(floor != z) continue;
+    g_painter->setBlendEquation(Painter::BlendEquation_Add);
+    for(LightPoint& lightPoint : m_lightMap) {
+        if(lightPoint.brightness.floor == -1) continue;
 
-                const auto& point = lightPoint.resetBrightness.second;
-                bool isEdge = false;
-                for(auto& pointAround : point.getPointsAround(m_mapView->m_tileSize)) {
-                    const auto& lightPointAround = getLightPoint(pointAround);
-                    if(lightPointAround.resetBrightness.first != z) {
-                        isEdge = true;
-                        break;
-                    }
-                }
-
-                g_painter->setColor(globalColor);
-                if(isEdge) {
-                    const uint8 size = 61 * (m_mapView->m_renderScale / 100);
-                    const Rect dest = Rect((point + (m_mapView->m_tileSize / 4)) - Point(size, size), Size(size * 2, size * 2));
-                    g_painter->drawTexturedRect(dest, m_borderTexture);
-                } else {
-                    g_painter->drawFilledRect(Rect(point, Size(m_mapView->m_tileSize, m_mapView->m_tileSize)));
-                }
+        int8 x = 0, y = 0;
+        for(auto& pointAround : lightPoint.brightness.pos.getPointsAround(m_mapView->m_tileSize)) {
+            const auto& lightPointAround = getLightPoint(pointAround);
+            if(lightPoint.brightness.floor != lightPointAround.brightness.floor) {
+                lightPoint.brightness.isEdge = true;
+                /*if(pointAround.diffX > x && y == 0)
+                    x = 1;
+                if(pointAround.diffY > y && x == 0)
+                    y = 1;*/
             }
         }
 
-        g_painter->setBlendEquation(Painter::BlendEquation_Add);
-        for(auto& lightPoint : m_lightMap) {
-            const bool isCovered = lightPoint.isCovered(z);
-            for(const auto& light : lightPoint.floors[z]) {
-                if(isCovered && !light.isMoving) continue;
 
-                const Rect dest = Rect(light.center - Point(light.radius, light.radius), Size(light.radius * 2, light.radius * 2));
-                const auto brightness = light.brightness - ((m_globalLight.intensity / static_cast<float>(MAX_AMBIENT_LIGHT_INTENSITY) / 4));
+        if(x != 0)
+            x /= std::abs(x);
 
-                Color color = Color::from8bit(light.color);
-                color.setAlpha(brightness);
+        if(y != 0)
+            y /= std::abs(y);
 
-                g_painter->setColor(color);
-                g_painter->drawTexturedRect(dest, m_lightTexture);
-            }
-        }
+        //lightPoint.brightness.pos -= Point(x, y) * (m_mapView->m_tileSize / 3);
     }
 
-    for(LightPoint& lightPoint : m_lightMap) {
-        lightPoint.reset();
+    for(int_fast8_t z = m_mapView->m_floorMax; z >= m_mapView->m_floorMin; --z) {
+        if(z < m_mapView->m_floorMax) {
+            g_painter->setColor(globalColor);
+            for(LightPoint& lightPoint : m_lightMap) {
+                if(lightPoint.brightness.floor != z) continue;
+                if(lightPoint.brightness.isEdge) {
+                    const uint8 size = m_mapView->m_tileSize;
+                    const Rect dest = Rect(lightPoint.brightness.pos - Point(size, size) / 2, Size(size, size) * 2);
+                    g_painter->drawTexturedRect(dest, m_borderTexture);
+                } else {
+                    g_painter->drawFilledRect(Rect(lightPoint.brightness.pos, Size(m_mapView->m_tileSize, m_mapView->m_tileSize)));
+                }
+
+                lightPoint.brightness.floor = -1;
+            }
+        }
+
+        for(auto& lightPoint : m_lightMap) {
+            auto& lights = lightPoint.floors[z];
+            if(!lightPoint.isCovered(z)) {
+                if(lights.size() > 1) {
+                    std::sort(lights.begin(), lights.end(), compareLights);
+                }
+
+                for(const auto& light : lights) {
+                    Color color = Color::from8bit(light.color);
+                    color.setAlpha(light.brightness);
+                    g_painter->setColor(color);
+                    g_painter->drawTexturedRect(Rect(light.center - Point(light.radius, light.radius), Size(light.radius, light.radius) * 2), m_lightTexture);
+                }
+            }
+
+            lights.clear();
+        }
     }
 }
 
@@ -279,7 +271,7 @@ void LightView::resize()
 void LightView::draw(const Rect& dest, const Rect& src)
 {
     // draw light, only if there is darkness
-    if(!isDark() || m_lightbuffer->getTexture() == nullptr) return;
+    if(!isDark()) return;
 
     g_painter->saveAndResetState();
     if(m_lightbuffer->canUpdate()) {
