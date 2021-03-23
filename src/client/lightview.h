@@ -62,7 +62,6 @@ struct LightSource {
     uint8 color;
     float brightness;
     uint16 radius;
-    bool isStaticLight;
     bool isEdge;
 };
 
@@ -73,19 +72,12 @@ struct TileBrightness {
 };
 
 struct LightPoint {
-    LightPoint(const bool valid = true) : isValid(valid) { reset(); }
+    LightPoint(const bool valid = true) : isValid(valid) {}
 
     bool isValid;
     TileBrightness brightness;
 
     std::array<std::vector<LightSource>, Otc::MAX_Z + 1 > floors;
-
-    void reset()
-    {
-        brightness.floor = -1;
-        for(auto& lights : floors)
-            lights.clear();
-    }
 
     bool isCovered(const uint8 floor)
     {
@@ -103,7 +95,7 @@ public:
     void resize();
     void reset() { m_lightMap.clear(); }
     void draw(const Rect& dest, const Rect& src);
-    void addLightSource(const Point& mainCenter, const Light& light, const bool isStaticLight);
+    void addLightSource(const Point& mainCenter, const Light& light);
 
     void setGlobalLight(const Light& light) { m_globalLight = light; }
     void schedulePainting(const uint16_t delay = FrameBuffer::MIN_TIME_UPDATE) const { if(isDark()) m_lightbuffer->schedulePainting(delay); }
