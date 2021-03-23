@@ -114,14 +114,17 @@ void MapView::draw(const Rect& rect)
         g_painter->resetColor();
         for(int_fast8_t z = m_floorMax; z >= m_floorMin; --z) {
             if(lightView) {
-                int8 nextFloor = z - 1;
-
+                const int8 nextFloor = z - 1;
                 if(nextFloor >= m_floorMin) {
                     lightView->setFloor(nextFloor);
                     for(const auto& tile : m_cachedVisibleTiles[nextFloor]) {
                         const auto& ground = tile->getGround();
                         if(ground && !ground->isTranslucent()) {
-                            lightView->resetBrightness(transformPositionTo2D(tile->getPosition(), cameraPosition));
+                            auto pos = transformPositionTo2D(tile->getPosition(), cameraPosition);
+                            if(ground->isTopGround())
+                                pos -= m_tileSize;
+
+                            lightView->resetBrightness(pos);
                         }
                     }
                 }
@@ -148,11 +151,11 @@ void MapView::draw(const Rect& rect)
             }
 
             onFloorDrawingEnd(z);
-        }
+            }
 
         if(redrawThing)
             m_frameCache.tile->release();
-    }
+        }
 
     // generating mipmaps each frame can be slow in older cards
     //m_framebuffer->getTexture()->buildHardwareMipmaps();
