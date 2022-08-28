@@ -51,28 +51,6 @@ jobs:
       - name: Get latest CMake and ninja
         uses: lukka/get-cmake@latest
 
-      - name: Install LuaJIT
-        run: |
-          mkdir caching
-          cd caching
-          "[requires]"    >> conanfile.txt
-          "luajit/2.0.5"  >> conanfile.txt
-          "[generators]"  >> conanfile.txt
-          "cmake"         >> conanfile.txt
-          "MSBuildDeps"   >> conanfile.txt
-          conan install . --build=missing
-          rm conanfile.txt
-
-      - name: Install Parallel OpenSSL
-        run: |
-          cd caching
-          "[requires]"            >> conanfile.txt
-          "openssl/3.0.0"         >> conanfile.txt
-          "[generators]"          >> conanfile.txt
-          "cmake"                 >> conanfile.txt
-          "MSBuildDeps"           >>conanfile.txt
-          conan install . --build=missing
-          rm conanfile.txt
 
       - name: Run Conan Install
         run: |
