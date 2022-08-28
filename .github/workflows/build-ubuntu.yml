@@ -59,7 +59,7 @@ jobs:
 
       - name: Run Conan Install
         run: >
-          conan instal ..
+          conan install ..
 
       - name: Run CMake
         uses: lukka/run-cmake@v10
