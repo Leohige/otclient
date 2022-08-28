@@ -123,11 +123,6 @@ public:
     void sendMarketCreateOffer(uint8_t type, uint16_t itemId, uint8_t itemTier, uint16_t amount, uint64_t price, uint8_t anonymous);
     void sendMarketCancelOffer(uint32_t timestamp, uint16_t counter);
     void sendMarketAcceptOffer(uint32_t timestamp, uint16_t counter, uint16_t amount);
-    void sendPreyAction(uint8_t slot, uint8_t actionType, uint16_t index);
-    void sendPreyRequest();
-    void sendApplyImbuement(uint8_t slot, uint32_t imbuementId, bool protectionCharm);
-    void sendClearImbuement(uint8_t slot);
-    void sendCloseImbuingWindow();
 
     // otclient only
     void sendChangeMapAwareRange(int xrange, int yrange);
@@ -256,46 +251,8 @@ private:
     void parseExtendedOpcode(const InputMessagePtr& msg);
     void parseChangeMapAwareRange(const InputMessagePtr& msg);
     void parseCreaturesMark(const InputMessagePtr& msg);
-    // 12x
-    void parseShowDescription(const InputMessagePtr& msg);
-    void parseBestiaryTracker(const InputMessagePtr& msg);
-    void parseTaskHuntingBasicData(const InputMessagePtr& msg);
-    void parseTaskHuntingData(const InputMessagePtr& msg);
-    void parseExperienceTracker(const InputMessagePtr& msg);
-    void parseLootContainers(const InputMessagePtr& msg);
-    void parseSupplyStash(const InputMessagePtr& msg);
-    void parseSpecialContainer(const InputMessagePtr& msg);
-    void parsePartyAnalyzer(const InputMessagePtr& msg);
-    void parseClientCheck(const InputMessagePtr& msg);
-    void parseGameNews(const InputMessagePtr& msg);
-    void parseBlessDialog(const InputMessagePtr& msg);
-    void parseRestingAreaState(const InputMessagePtr& msg);
-    void parseUpdateImpactTracker(const InputMessagePtr& msg);
-    void parseItemsPrice(const InputMessagePtr& msg);
-    void parseUpdateSupplyTracker(const InputMessagePtr& msg);
-    void parseUpdateLootTracker(const InputMessagePtr& msg);
-    void parseBestiaryEntryChanged(const InputMessagePtr& msg);
-    void parseDailyRewardCollectionState(const InputMessagePtr& msg);
-    void parseOpenRewardWall(const InputMessagePtr& msg);
-    void parseDailyReward(const InputMessagePtr& msg);
-    void parseRewardHistory(const InputMessagePtr& msg);
-    void parsePreyFreeRerolls(const InputMessagePtr& msg);
-    void parsePreyTimeLeft(const InputMessagePtr& msg);
-    void parsePreyData(const InputMessagePtr& msg);
-    void parsePreyRerollPrice(const InputMessagePtr& msg);
-    Imbuement getImbuementInfo(const InputMessagePtr& msg);
-    void parseImbuementWindow(const InputMessagePtr& msg);
-    void parseCloseImbuementWindow(const InputMessagePtr& msg);
-    void parseError(const InputMessagePtr& msg);
-    void parseMarketEnter(const InputMessagePtr& msg);
-    void parseMarketEnterOld(const InputMessagePtr& msg);
-    void parseMarketDetail(const InputMessagePtr& msg);
-    void parseMarketBrowse(const InputMessagePtr& msg);
 
     MarketOffer readMarketOffer(const InputMessagePtr& msg, uint8_t action, uint16_t var);
-
-    PreyMonster getPreyMonster(const InputMessagePtr& msg);
-    std::vector<PreyMonster> getPreyMonsters(const InputMessagePtr& msg);
 
 public:
     void setMapDescription(const InputMessagePtr& msg, int x, int y, int z, int width, int height);

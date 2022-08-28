@@ -364,15 +364,6 @@ public:
     void cancelMarketOffer(uint32_t timestamp, uint16_t counter);
     void acceptMarketOffer(uint32_t timestamp, uint16_t counter, uint16_t amount);
 
-    // prey related
-    void preyAction(uint8_t slot, uint8_t actionType, uint16_t index);
-    void preyRequest();
-
-    // imbuing related
-    void applyImbuement(uint8_t slot, uint32_t imbuementId, bool protectionCharm);
-    void clearImbuement(uint8_t slot);
-    void closeImbuingWindow();
-
 protected:
     void enableBotCall() { m_denyBotCall = false; }
     void disableBotCall() { m_denyBotCall = true; }

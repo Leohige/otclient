@@ -57,10 +57,7 @@ namespace Proto
         GameServerPingBack = 29,
         GameServerPing = 30,
         GameServerChallenge = 31,
-        GameServerDeath = 40,
-        GameServerSupplyStash = 41,
-        GameServerSpecialContainer = 42,
-        GameServerPartyAnalyzer = 43,
+        GameServerDeath  = 40,
 
         // all in game opcodes must be greater than 50
         GameServerFirstGameOpcode = 50,
@@ -71,10 +68,8 @@ namespace Proto
         // NOTE: add any custom opcodes in this range
         // 51 - 99
         GameServerChangeMapAwareRange = 51,
-        GameServerFloorDescription = 75,
 
         // original tibia ONLY
-        GameServerSendClientCheck = 99,
         GameServerFullMap = 100,
         GameServerMapTopRow = 101,
         GameServerMapRightRow = 102,
@@ -102,7 +97,7 @@ namespace Proto
         GameServerGraphicalEffect = 131,
         GameServerTextEffect = 132,
         GameServerMissleEffect = 133,
-        GameServerItemClasses = 134,
+        GameServerMarkCreature = 134,
         GameServerTrappers = 135,
         GameServerCreatureHealth = 140,
         GameServerCreatureLight = 141,
@@ -116,8 +111,6 @@ namespace Proto
         GameServerCreatureType = 149,
         GameServerEditText = 150,
         GameServerEditList = 151,
-        GameServerSendGameNews = 152,
-        GameServerSendBlessDialog = 155,
         GameServerBlessings = 156,
         GameServerPreset = 157,
         GameServerPremiumTrigger = 158, // 1038
@@ -131,7 +124,6 @@ namespace Proto
         GameServerSpellGroupDelay = 165, // 870
         GameServerMultiUseDelay = 166, // 870
         GameServerSetStoreDeepLink = 168, // 1097
-        GameServerSendRestingAreaState = 169,
         GameServerTalk = 170,
         GameServerChannels = 171,
         GameServerOpenChannel = 172,
@@ -147,41 +139,17 @@ namespace Proto
         GameServerWalkWait = 182,
         GameServerUnjustifiedStats = 183,
         GameServerPvpSituations = 184,
-        GameServerRefreshBestiaryTracker = 185,
-        GameServerTaskHuntingBasicData = 186,
-        GameServerTaskHuntingData = 187,
         GameServerFloorChangeUp = 190,
         GameServerFloorChangeDown = 191,
-        GameServerLootContainers = 192,
         GameServerChooseOutfit = 200,
-        GameServerSendUpdateImpactTracker = 204,
-        GameServerSendItemsPrice = 205,
-        GameServerSendUpdateSupplyTracker = 206,
-        GameServerSendUpdateLootTracker = 207,
-        GameServerKillTracker = 209, // 1281
         GameServerVipAdd = 210,
         GameServerVipState = 211,
         GameServerVipLogout = 212,
-        GameServerSendBestiaryEntryChanged = 217,
         GameServerTutorialHint = 220,
         GameServerAutomapFlag = 221,
-        GameServerSendDailyRewardCollectionState = 222,
         GameServerCoinBalance = 223, // 1080
         GameServerStoreError = 224, // 1080
         GameServerRequestPurchaseData = 225, // 1080
-        GameServerSendOpenRewardWall = 226,
-        GameServerSendDailyReward = 228,
-        GameServerSendRewardHistory = 229,
-        GameServerSendPreyFreeRerolls = 230,
-        GameServerSendPreyTimeLeft = 231,
-        GameServerSendPreyData = 232,
-        GameServerSendPreyRerollPrice = 233,
-        GameServerSendShowDescription = 234,
-        GameServerSendImbuementWindow = 235,
-        GameServerSendCloseImbuementWindow = 236,
-        GameServerSendError = 237,
-        GameServerResourceBalance = 238, // 1281
-        GameServerWorldTime = 239, // 1281
         GameServerQuestLog = 240,
         GameServerQuestLine = 241,
         GameServerCoinBalanceUpdating = 242, // 1080
@@ -283,17 +251,12 @@ namespace Proto
         ClientRequestOutfit = 210,
         ClientChangeOutfit = 211,
         ClientMount = 212, // 870
-        ClientApplyImbuement = 213,
-        ClientClearImbuement = 214,
-        ClientCloseImbuingWindow = 215,
         ClientAddVip = 220,
         ClientRemoveVip = 221,
         ClientEditVip = 222,
         ClientBugReport = 230,
         ClientRuleViolation = 231,
-        ClientDebugReport = 232,
-        ClientPreyAction = 235,
-        ClientPreyRequest = 237,
+        ClientDebugReport  = 232,
         ClientTransferCoins = 239, // 1080
         ClientRequestQuestLog = 240,
         ClientRequestQuestLine = 241,

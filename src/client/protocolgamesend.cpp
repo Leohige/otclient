@@ -59,10 +59,6 @@ void ProtocolGame::sendLoginPacket(uint32_t challengeTimestamp, uint8_t challeng
     if (g_game.getFeature(Otc::GameClientVersion))
         msg->addU32(g_game.getClientVersion());
 
-    if (g_game.getClientVersion() >= 1281) {
-        msg->addString(std::to_string(g_game.getClientVersion()));
-    }
-
     if (g_game.getFeature(Otc::GameContentRevision))
         msg->addU16(g_things.getContentRevision());
 
@@ -712,10 +708,6 @@ void ProtocolGame::sendChangeOutfit(const Outfit& outfit)
     const OutputMessagePtr msg(new OutputMessage);
     msg->addU8(Proto::ClientChangeOutfit);
 
-    if (g_game.getClientVersion() >= 1281) {
-        msg->addU8(0x00); // normal outfit window
-    }
-
     if (g_game.getFeature(Otc::GameLooktypeU16))
         msg->addU16(outfit.getId());
     else
@@ -731,16 +723,6 @@ void ProtocolGame::sendChangeOutfit(const Outfit& outfit)
 
     if (g_game.getFeature(Otc::GamePlayerMounts)) {
         msg->addU16(outfit.getMount());
-        if (g_game.getClientVersion() >= 1281) {
-            msg->addU8(0x00);
-            msg->addU8(0x00);
-            msg->addU8(0x00);
-            msg->addU8(0x00);
-        }
-    }
-
-    if (g_game.getClientVersion() >= 1281) {
-        msg->addU16(0x00); //familiars
     }
 
     send(msg);
@@ -1036,48 +1018,3 @@ void ProtocolGame::sendMarketAcceptOffer(uint32_t timestamp, uint16_t counter, u
     send(msg);
 }
 
-void ProtocolGame::sendPreyAction(uint8_t slot, uint8_t actionType, uint16_t index)
-{
-    OutputMessagePtr msg(new OutputMessage);
-    msg->addU8(Proto::ClientPreyAction);
-    msg->addU8(slot);
-    msg->addU8(actionType);
-    if (actionType == 2 || actionType == 5) {
-        msg->addU8(index);
-    } else if (actionType == 4) {
-        msg->addU16(index); // raceid
-        send(msg);
-    }
-}
-
-void ProtocolGame::sendPreyRequest()
-{
-    OutputMessagePtr msg(new OutputMessage);
-    msg->addU8(Proto::ClientPreyRequest);
-    send(msg);
-}
-
-void ProtocolGame::sendApplyImbuement(uint8_t slot, uint32_t imbuementId, bool protectionCharm)
-{
-    OutputMessagePtr msg(new OutputMessage);
-    msg->addU8(Proto::ClientApplyImbuement);
-    msg->addU8(slot);
-    msg->addU32(imbuementId);
-    msg->addU8(protectionCharm ? 1 : 0);
-    send(msg);
-}
-
-void ProtocolGame::sendClearImbuement(uint8_t slot)
-{
-    OutputMessagePtr msg(new OutputMessage);
-    msg->addU8(Proto::ClientClearImbuement);
-    msg->addU8(slot);
-    send(msg);
-}
-
-void ProtocolGame::sendCloseImbuingWindow()
-{
-    OutputMessagePtr msg(new OutputMessage);
-    msg->addU8(Proto::ClientCloseImbuingWindow);
-    send(msg);
-}

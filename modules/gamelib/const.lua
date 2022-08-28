@@ -153,7 +153,6 @@ GameIngameStoreHighlights = 74
 GameIngameStoreServiceType = 75
 GameAdditionalSkills = 76
 GameDistanceEffectU16 = 77
-GamePrey = 82
 
 TextColors = {
     red = '#f55e5e', -- '#c83200'
@@ -222,14 +221,7 @@ MessageModes = {
     GameHighlight = 50,
     NpcFromStartBlock = 51,
 
-    -- 12x
-    Attention = 52,
-    BoostedCreature = 53,
-    OfflineTrainning = 54,
-    Transaction = 55,
-    Potion = 56,
-
-    Last = 57,
+    Last = 52,
     Invalid = 255
 }
 
@@ -352,7 +344,6 @@ ChannelEvent = {
 ResourceTypes = {
     BANK_BALANCE = 0,
     GOLD_EQUIPPED = 1,
-    PREY_WILDCARDS = 10,
     DAILYREWARD_STREAK = 20,
     DAILYREWARD_JOKERS = 21,
     TASK_HUNTING = 50,
