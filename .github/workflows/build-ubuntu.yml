@@ -34,7 +34,11 @@ jobs:
 
       - name: Install Linux Dependencies
         run: > 
-          sudo apt-get update && sudo apt-get install ccache libglew-dev libx11-dev linux-headers-$(uname -r)
+          sudo apt-get update && sudo apt-get install python ccache libglew-dev libx11-dev linux-headers-$(uname -r)
+
+      - name: Install Conan
+        run: >
+          pip install conan
 
       - name: Switch to gcc-11
         run: |
@@ -50,13 +54,12 @@ jobs:
           restore-keys: |
             ccache-${{ matrix.os }}
 
-      - name: Restore artifacts and install vcpkg
-        uses: lukka/run-vcpkg@v10
-        with:
-          vcpkgGitCommitId: 0d209ca968e9d07228d2ee56f823689dd95303ab
-
       - name: Get latest CMake and ninja
         uses: lukka/get-cmake@latest
+
+      - name: Run Conan Install
+        run: >
+          conan instal ..
 
       - name: Run CMake
         uses: lukka/run-cmake@v10
