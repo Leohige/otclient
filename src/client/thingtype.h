@@ -32,8 +32,6 @@
 #include <framework/net/server.h>
 #include <framework/otml/declarations.h>
 
-using namespace otclient::protobuf;
-
 enum class TextureType
 {
     NONE,
@@ -113,21 +111,6 @@ enum ThingAttr : uint8_t
     ThingLastAttr = 255
 };
 
-struct Imbuement
-{
-    int id;
-    std::string name;
-    std::string description;
-    std::string group;
-    int imageId;
-    int duration;
-    bool premiumOnly;
-    std::vector<std::pair<ItemPtr, std::string>> sources;
-    int cost;
-    int successRate;
-    int protectionCost;
-};
-
 enum SpriteMask
 {
     SpriteMaskRed = 1,
@@ -170,7 +153,6 @@ struct Light
 class ThingType : public LuaObject
 {
 public:
-    void unserializeAppearance(uint16_t clientId, ThingCategory category, const appearances::Appearance& appearance);
     void unserialize(uint16_t clientId, ThingCategory category, const FileStreamPtr& fin);
     void unserializeOtml(const OTMLNodePtr& node);
 
