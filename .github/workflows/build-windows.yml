@@ -20,7 +20,7 @@ jobs:
     strategy:
       matrix:
         os: [windows-2019]
-        buildtype: [windows-release, windows-release-asan, windows-debug, windows-release-static-lib]
+        buildtype: [windows-release, windows-release-asan, windows-debug]
         include:
           - os: windows-2019
             triplet: x64-windows
@@ -59,11 +59,29 @@ jobs:
           cd ${{ matrix.buildtype }}
           conan install -s compiler='Visual Studio' ../../ --build=missing
 
-      - name: Run CMake
-        uses: lukka/run-cmake@v10
-        with:
-          configurePreset: ${{ matrix.buildtype }}
-          buildPreset: ${{ matrix.buildtype }}
+      - name: Run CMake Release
+        if: ${{ matrix.buildtype == 'windows-release' }}
+        run: >
+          cmake .. -DDEBUG_LOG=OFF -DASAN_ENABLED=OFF -DCMAKE_BUILD_TYPE=Release
+          cmake --build . --config Release
+
+      - name: Run CMake Release Asan
+        if: ${{ matrix.buildtype == 'windows-release-asan' }}
+        run: >
+          cmake .. -DDEBUG_LOG=OFF -DASAN_ENABLED=ON -DCMAKE_BUILD_TYPE=Release
+          cmake --build . --config Release
+
+      - name: Run CMake Debug
+        if: ${{ matrix.buildtype == 'windows-debug' }}
+        run: >
+          cmake .. -DDEBUG_LOG=ON -DASAN_ENABLED=ON -DCMAKE_BUILD_TYPE=Debug
+          cmake --build . --config Debug
+
+      # - name: Run CMake
+      #   uses: lukka/run-cmake@v10
+      #   with:
+      #     configurePreset: ${{ matrix.buildtype }}
+      #     buildPreset: ${{ matrix.buildtype }}
 
       - name: Create and Upload Artifact (exe)
         uses: actions/upload-artifact@v3
