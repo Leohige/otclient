@@ -13,9 +13,6 @@
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/build/${presetName}",
             "cacheVariables": {
-                "CMAKE_TOOLCHAIN_FILE": {
-                    "type": "FILEPATH"
-                },
                 "CMAKE_BUILD_TYPE": "RelWithDebInfo",
                 "OPTIONS_ENABLE_SCCACHE": "ON"
             },
@@ -41,9 +38,6 @@
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/build/${presetName}",
             "cacheVariables": {
-                "CMAKE_TOOLCHAIN_FILE": {
-                    "type": "FILEPATH"
-                },
                 "CMAKE_BUILD_TYPE": "RelWithDebInfo",
                 "OPTIONS_ENABLE_CCACHE": "ON"
             },
