@@ -1,0 +1,13 @@
+[requires]
+luajit/2.0.5
+parallel-hashmap/1.35
+asio/1.24.0
+glew/2.2.0
+physfs/3.0.2
+openal/1.22.2
+vorbis/1.3.7
+openssl/3.0.5
+
+[generators]
+cmake
+MSBuildDeps

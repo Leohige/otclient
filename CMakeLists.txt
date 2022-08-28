@@ -1,24 +1,5 @@
 cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
 
-# CMAKE
-# apt install build-essential git
-# git clone https://github.com/Kitware/CMake/; cd CMake
-# ./bootstrap && make && sudo make install
-
-# VCPKG
-# cmake -DCMAKE_TOOLCHAIN_FILE=/opt/workspace/vcpkg/scripts/buildsystems/vcpkg.cmake ..
-# .\vcpkg --triplet x64-windows asio luajit glew physfs openal-soft libogg libvorbis zlib opengl nlohmann-json protobuf liblzma openssl
-if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-	set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
-endif()
-
-if(DEFINED ENV{VCPKG_DEFAULT_TRIPLET} AND NOT DEFINED VCPKG_TARGET_TRIPLET)
-	set(VCPKG_TARGET_TRIPLET "$ENV{VCPKG_DEFAULT_TRIPLET}" CACHE STRING "")
-endif()
-
-set(VCPKG_FEATURE_FLAGS "versions")
-set(VCPKG_BUILD_TYPE "release")
-
 # *****************************************************************************
 # Project otclient
 # *****************************************************************************
@@ -92,7 +73,5 @@ endif()
 # Add project
 # *****************************************************************************
 
-# Protobuf
-add_subdirectory(src/protobuf)
 # Src
 add_subdirectory(src)

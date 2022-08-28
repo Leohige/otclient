@@ -1,5 +1,8 @@
-
-project(otclient)
+# *****************************************************************************
+# Conan
+# *****************************************************************************
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+conan_basic_setup()
 
 # *****************************************************************************
 # Options
@@ -160,36 +163,12 @@ add_definitions(-D"BUILD_REVISION=\\\"${BUILD_REVISION}\\\"")
 # *****************************************************************************
 # Packages / Libs
 # *****************************************************************************
-find_package(OpenSSL QUIET)
-find_package(PhysFS REQUIRED)
-find_package(ZLIB REQUIRED)
-find_package(Protobuf REQUIRED)
-find_package(LibLZMA REQUIRED)
-find_package(nlohmann_json REQUIRED)
-find_package(asio REQUIRED)
 find_package(Threads REQUIRED)
-# OpenGL/GLEW = Graphics
-find_package(OpenGL REQUIRED)
-find_package(GLEW REQUIRED)
-find_package(STDUUID CONFIG REQUIRED)
 if(UNIX)
 	find_package(X11 REQUIRED)
 endif()
-find_package(LuaJIT REQUIRED)
-if(WIN32)
-	find_package(DbgHelp REQUIRED)
-endif(WIN32)
-if(NOT OPENSSL_FOUND)
-	find_package(GMP REQUIRED)
-endif()
 if(TOGGLE_DIRECTX)
 	find_package(DirectX REQUIRED)
-endif()
-if(TOGGLE_FRAMEWORK_SOUND)
-	find_package(OpenAL CONFIG REQUIRED)
-	find_package(VorbisFile REQUIRED)
-	find_package(Vorbis CONFIG REQUIRED)
-	find_package(Ogg CONFIG REQUIRED)
 endif()
 
 # *****************************************************************************
@@ -224,7 +203,6 @@ target_sources(${PROJECT_NAME}
 	client/protocolgameparse.cpp
 	client/protocolgamesend.cpp
 	client/shadermanager.cpp
-	client/spriteappearances.cpp
 	client/spritemanager.cpp
 	client/statictext.cpp
 	client/thing.cpp
@@ -340,7 +318,6 @@ target_sources(${PROJECT_NAME}
 	framework/xml/tinyxml.cpp
 	framework/xml/tinyxmlerror.cpp
 	framework/xml/tinyxmlparser.cpp
-	protobuf/appearances.pb.cc
 	main.cpp
 )
 
@@ -362,82 +339,26 @@ if(MSVC)
 
 	target_compile_options(${PROJECT_NAME} PUBLIC /MP /FS /Zf )
 
-	target_include_directories(${PROJECT_NAME}
-		PRIVATE
-		${CMAKE_SOURCE_DIR}/src
-		${LUAJIT_INCLUDE_DIR}
-		${Protobuf_INCLUDE_DIRS}
-		${VORBISFILE_INCLUDE_DIR}
-		${GMP_INCLUDE_DIR}
-		${OPENSSL_INCLUDE_DIR}
-		${PHYSFS_INCLUDE_DIR}
-		${PARALLEL_HASHMAP_INCLUDE_DIRS}
-		${NLOHMANN_JSON_INCLUDE_DIR}
-	)
 	target_link_libraries(${PROJECT_NAME}
 		PRIVATE
-		${LUAJIT_LIBRARY}
-		${CMAKE_THREAD_LIBS_INIT}
-		${PHYSFS_LIBRARY}
-		${ZLIB_LIBRARY}
-		${PROTOBUF_LIBRARY}
-		${NLOHMANN_JSON_LIBRARY}
-		${OPENGL_LIBRARIES}
+		${CONAN_LIBS}
 		${DirectX_LIBRARY}
 		${DirectX_LIBRARIES}
-		${VORBISFILE_LIBRARY}
-		${VORBIS_LIBRARY}
-		${OGG_LIBRARY}
-		${GMP_LIBRARY}
-		${OPENSSL_LIBRARIES}
-		${DBGHELP_LIBRARY}
-		${STDUUID}
-
+		
+		dbghelp.lib
 		Threads::Threads
-		GLEW::GLEW
-		asio::asio
-		OpenAL::OpenAL
-		LibLZMA::LibLZMA
 	)
 else()
-	target_include_directories(${PROJECT_NAME}
-		PRIVATE
-		${CMAKE_SOURCE_DIR}/src
-		${LUAJIT_INCLUDE_DIR}
-		${CMAKE_THREAD_LIBS_INIT}
-		${Protobuf_INCLUDE_DIRS}
-		${GMP_INCLUDE_DIR}
-		${OPENSSL_INCLUDE_DIR}
-		${PHYSFS_INCLUDE_DIR}
-		${GLEW_INCLUDE_DIR}
-		${PARALLEL_HASHMAP_INCLUDE_DIRS}
-		${NLOHMANN_JSON_INCLUDE_DIR}
-	)
 	target_link_libraries(${PROJECT_NAME}
 		PRIVATE
-		${LUAJIT_LIBRARY}
-		${PHYSFS_LIBRARY}
-		${ZLIB_LIBRARY}
-		${PROTOBUF_LIBRARY}
-		${NLOHMANN_JSON_LIBRARY}
-		${GLEW_LIBRARY}
-		${OPENGL_LIBRARIES}
-		${DirectX_LIBRARY}
-		${DirectX_LIBRARIES}
-		${OGG_LIBRARY}
-		${GMP_LIBRARY}
-		${OPENSSL_LIBRARIES}
-		${STDUUID}
+		${CONAN_LIBS}
 
 		Threads::Threads
 		X11::X11
-		asio::asio
-		OpenAL::OpenAL
-		Vorbis::vorbis
-		Vorbis::vorbisfile
-		LibLZMA::LibLZMA
 	)
 endif()
+
+include_directories(${CMAKE_CURRENT_LIST_DIR})
 
 # *****************************************************************************
 # Enable otclient console only for debug build
