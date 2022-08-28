@@ -2,7 +2,7 @@
 # generates otclient zip package for win32
 # by edubart :)
 
-gitroot="git://github.com/edubart/otclient.git"
+gitroot="git://github.com/leohige/otclient.git"
 name="otclient"
 workdir="$HOME/$name-builds"
 mingwplatform="i486-mingw32"
