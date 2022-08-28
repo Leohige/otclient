@@ -43,7 +43,7 @@ jobs:
       - name: Switch to gcc-11
         if: ${{ matrix.language == 'cpp' }}
         run: |
-          sudo apt install gcc-11 g++-11
+          sudo apt install gcc-11 g++-11 python
           sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 100 --slave /usr/bin/g++ g++ /usr/bin/g++-11 --slave /usr/bin/gcov gcov /usr/bin/gcov-11
           sudo update-alternatives --set gcc /usr/bin/gcc-11
 
@@ -55,11 +55,8 @@ jobs:
           restore-keys: |
             ccache-${{ matrix.os }}
 
-      - name: Restore artifacts, or setup vcpkg (do not install any package)
-        if: ${{ matrix.language == 'cpp' }}
-        uses: lukka/run-vcpkg@v10
-        with:
-          vcpkgGitCommitId: 0d209ca968e9d07228d2ee56f823689dd95303ab
+      - name: Get Conan
+        uses: turtlebrowser/get-conan@main
 
       - name: Get latest CMake and ninja
         if: ${{ matrix.language == 'cpp' }}
