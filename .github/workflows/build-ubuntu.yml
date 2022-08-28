@@ -37,7 +37,8 @@ jobs:
           sudo apt-get update && sudo apt-get install python ccache libglew-dev libx11-dev linux-headers-$(uname -r)
 
       - name: Install Conan
-        run: >
+        run: |
+          pip install wheel
           pip install conan
 
       - name: Switch to gcc-11
