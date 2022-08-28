@@ -62,7 +62,7 @@ jobs:
           cd build
           mkdir ${{ matrix.buildtype }}
           cd ${{ matrix.buildtype }}
-          conan install -s compiler='Visual Studio' build_type=Debug ../../ --build=missing
+          conan install -s compiler='Visual Studio' -s build_type=Debug ../../ --build=missing
 
       - name: Run CMake Release
         if: ${{ matrix.buildtype == 'windows-release' }}
