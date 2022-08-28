@@ -60,7 +60,7 @@ jobs:
         run: |
           cd build
           cd ${{ matrix.buildtype }}
-          cmake .. -DDEBUG_LOG=OFF -DASAN_ENABLED=OFF -DCMAKE_BUILD_TYPE=Release
+          cmake ../../ -DDEBUG_LOG=OFF -DASAN_ENABLED=OFF -DCMAKE_BUILD_TYPE=Release
           cmake --build . --config Release
 
       - name: Run CMake Release Asan
@@ -68,7 +68,7 @@ jobs:
         run: |
           cd build
           cd ${{ matrix.buildtype }}
-          cmake .. -DDEBUG_LOG=OFF -DASAN_ENABLED=ON -DCMAKE_BUILD_TYPE=Release
+          cmake ../../ -DDEBUG_LOG=OFF -DASAN_ENABLED=ON -DCMAKE_BUILD_TYPE=Release
           cmake --build . --config Release
 
       - name: Run CMake Debug
@@ -76,7 +76,7 @@ jobs:
         run: |
           cd build
           cd ${{ matrix.buildtype }}
-          cmake .. -DDEBUG_LOG=ON -DASAN_ENABLED=ON -DCMAKE_BUILD_TYPE=Debug
+          cmake ../../ -DDEBUG_LOG=ON -DASAN_ENABLED=ON -DCMAKE_BUILD_TYPE=Debug
           cmake --build . --config Debug
 
       - name: Create and Upload Artifact (exe)
