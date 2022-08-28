@@ -57,7 +57,7 @@ jobs:
 
       - name: Run CMake Release
         if: ${{ matrix.buildtype == 'windows-release' }}
-        run: >
+        run: |
           cd build
           cd ${{ matrix.buildtype }}
           cmake .. -DDEBUG_LOG=OFF -DASAN_ENABLED=OFF -DCMAKE_BUILD_TYPE=Release
@@ -65,7 +65,7 @@ jobs:
 
       - name: Run CMake Release Asan
         if: ${{ matrix.buildtype == 'windows-release-asan' }}
-        run: >
+        run: |
           cd build
           cd ${{ matrix.buildtype }}
           cmake .. -DDEBUG_LOG=OFF -DASAN_ENABLED=ON -DCMAKE_BUILD_TYPE=Release
@@ -73,17 +73,11 @@ jobs:
 
       - name: Run CMake Debug
         if: ${{ matrix.buildtype == 'windows-debug' }}
-        run: >
+        run: |
           cd build
           cd ${{ matrix.buildtype }}
           cmake .. -DDEBUG_LOG=ON -DASAN_ENABLED=ON -DCMAKE_BUILD_TYPE=Debug
           cmake --build . --config Debug
-
-      # - name: Run CMake
-      #   uses: lukka/run-cmake@v10
-      #   with:
-      #     configurePreset: ${{ matrix.buildtype }}
-      #     buildPreset: ${{ matrix.buildtype }}
 
       - name: Create and Upload Artifact (exe)
         uses: actions/upload-artifact@v3
