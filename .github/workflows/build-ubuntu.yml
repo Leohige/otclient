@@ -60,8 +60,9 @@ jobs:
         uses: lukka/get-cmake@latest
 
       - name: Run Conan Install
-        run: >
-          conan install ..
+        run: |
+          cd build
+          conan install -s compiler.libcxx=libstdc++11 .. --build=missing
 
       - name: Run CMake
         uses: lukka/run-cmake@v10
