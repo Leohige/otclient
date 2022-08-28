@@ -56,7 +56,7 @@ jobs:
           cd build
           mkdir ${{ matrix.buildtype }}
           cd ${{ matrix.buildtype }}
-          conan install -s compiler.libcxx=libstdc++11 .. --build=missing
+          conan install .. --build=missing
 
       - name: Run CMake
         uses: lukka/run-cmake@v10
