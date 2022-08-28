@@ -8,10 +8,6 @@ on:
     branches:
       - main
 
-env:
-  CMAKE_BUILD_PARALLEL_LEVEL: 2
-  MAKEFLAGS: '-j 2'
-
 jobs:
   job:
     name: ${{ matrix.os }}-${{ matrix.buildtype }}
@@ -66,10 +62,14 @@ jobs:
           conan install -s compiler.libcxx=libstdc++11 .. --build=missing
 
       - name: Run CMake
-        uses: lukka/run-cmake@v10
-        with:
-          configurePreset: ${{ matrix.buildtype }}
-          buildPreset: ${{ matrix.buildtype }}
+        run: |
+          cd build
+          cmake ..
+
+      - name: Compile
+        run: |
+          cd build
+          make -j2
 
       - name: Create and Upload Artifact
         uses: actions/upload-artifact@v3
