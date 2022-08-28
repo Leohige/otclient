@@ -65,7 +65,6 @@ jobs:
 
       - name: Install Parallel Hashmap
         run: |
-          mkdir caching
           cd caching
           "[requires]"            >>conanfile.txt
           "parallel-hashmap/1.35" >>conanfile.txt
