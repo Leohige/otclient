@@ -51,14 +51,13 @@ jobs:
       - name: Get latest CMake and ninja
         uses: lukka/get-cmake@latest
 
-
       - name: Run Conan Install
         run: |
           mkdir build
           cd build
           mkdir ${{ matrix.buildtype }}
           cd ${{ matrix.buildtype }}
-          conan install ../../ --build=missing
+          conan install -s compiler='Visual Studio' ../../ --build=missing
 
       - name: Run CMake
         uses: lukka/run-cmake@v10
