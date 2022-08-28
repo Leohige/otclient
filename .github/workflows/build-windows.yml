@@ -15,6 +15,7 @@ env:
 jobs:
   job:
     name: ${{ matrix.os }}-${{ matrix.buildtype }}
+    timeout-minutes: 15
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -51,7 +52,6 @@ jobs:
         uses: lukka/get-cmake@latest
 
       - name: Run Conan Install
-        timeout-minutes: 10
         run: |
           mkdir build
           cd build
