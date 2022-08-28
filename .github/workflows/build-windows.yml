@@ -39,13 +39,24 @@ jobs:
           restore-keys: |
             ccache-${{ matrix.os }}
 
-      - name: Restore artifacts and install vcpkg
-        uses: lukka/run-vcpkg@v10
+      - name: Install Python
+        uses: actions/setup-python@v1
         with:
-          vcpkgGitCommitId: 0d209ca968e9d07228d2ee56f823689dd95303ab
+          python-version: '3.10'
+
+      - name: Get latest Conan
+        run: pip install conan
 
       - name: Get latest CMake and ninja
         uses: lukka/get-cmake@latest
+
+      - name: Run Conan Install
+        run: |
+          mkdir build
+          cd build
+          mkdir ${{ matrix.buildtype }}
+          cd ${{ matrix.buildtype }}
+          conan install -s compiler.libcxx=libstdc++11 .. --build=missing
 
       - name: Run CMake
         uses: lukka/run-cmake@v10
