@@ -14,7 +14,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-2022]
+        os: [macos-latest]
         buildtype: [macos-release, macos-debug]
         include:
           - os: macos-latest
