@@ -5,34 +5,20 @@ RUN export DEBIAN_FRONTEND=noninteractive \
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
 	git cmake curl zip unzip tar automake ca-certificates build-essential \
-	libglew-dev libx11-dev autoconf libtool pkg-config tzdata \
+	libglew-dev libx11-dev autoconf libtool pkg-config tzdata python3 \
 	&& dpkg-reconfigure --frontend noninteractive tzdata \
 	&& apt-get clean && apt-get autoclean
 
-WORKDIR /opt
-RUN git clone https://github.com/microsoft/vcpkg
-RUN ./vcpkg/bootstrap-vcpkg.sh
-
-WORKDIR /opt/vcpkg
-COPY vcpkg.json /opt/vcpkg/
-RUN /opt/vcpkg/vcpkg --feature-flags=binarycaching,manifests,versions install
+RUN pip3 install wheel && pip3 install conan
 
 COPY ./ /otclient/
 WORKDIR /otclient/build
 
-RUN cmake -DCMAKE_TOOLCHAIN_FILE=/opt/vcpkg/scripts/buildsystems/vcpkg.cmake ..
-RUN make -j$(nproc)
+RUN conan install -s compiler.libcxx=libstdc++11 -s build_type=Release .. --build=missing
+RUN cmake ..
+RUN cmake --build . -j$(nproc) --config Release
 
 FROM ubuntu:22.04
-
-RUN apt-get update; \
- 	apt-get install -y \
-	libluajit-5.1-dev \
- 	libglew-dev \
-	libx11-dev \
- 	libopenal1 \
- 	libopengl0 \
- 	&& apt-get clean && apt-get autoclean
 
 COPY --from=builder /otclient /otclient
 COPY ./data/ /otclient/data/.
