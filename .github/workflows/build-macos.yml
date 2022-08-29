@@ -39,10 +39,11 @@ jobs:
         with:
           python-version: '3.7'
 
-      - name: Get Latest XCode
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: latest-stable
+      - name: Set Compiler (OSX)
+        if: contains(matrix.os, 'macos')
+        run: |
+          echo "FC=gfortran-11" >> $GITHUB_ENV
+          echo "CC=gcc-11" >> $GITHUB_ENV
 
       - name: Get latest Conan
         run: pip install conan
