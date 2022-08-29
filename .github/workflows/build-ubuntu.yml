@@ -106,3 +106,5 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: otclient-${{ matrix.buildtype }}-${{ github.sha }}
+          path: |
+            ${{ github.workspace }}
