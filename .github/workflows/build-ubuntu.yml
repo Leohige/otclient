@@ -76,6 +76,7 @@ jobs:
           conan install -s compiler.libcxx=libstdc++11 -s build_type=Debug ../../ --build=missing
 
       - name: Run CMake Release
+        if: ${{ matrix.buildtype == 'linux-release' }}
         run: |
           cd build
           cd ${{ matrix.buildtype }}
@@ -83,6 +84,7 @@ jobs:
           cmake --build . --config Release
 
       - name: Run CMake Debug
+        if: ${{ matrix.buildtype == 'linux-debug' }}
         run: |
           cd build
           cd ${{ matrix.buildtype }}
