@@ -47,13 +47,13 @@ jobs:
         uses: lukka/get-cmake@latest
 
       - name: Run Conan Install Release
-        if: ${{ matrix.buildtype == 'windows-release' || matrix.buildtype == 'windows-release-asan' }}
+        if: ${{ matrix.buildtype == 'windows-release' }}
         run: |
           mkdir build
           cd build
           mkdir ${{ matrix.buildtype }}
           cd ${{ matrix.buildtype }}
-          conan install ../../ --build=missing
+          conan install ../../ -s build_type=Release --build=missing
 
       - name: Run Conan Install Debug
         if: ${{ matrix.buildtype == 'windows-debug' }}
