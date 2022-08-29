@@ -27,7 +27,7 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
         with:
-          languages: c, cpp, lua
+          languages: c, cpp
 
       - name: Install Linux Dependencies
         run: > 
