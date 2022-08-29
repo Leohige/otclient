@@ -34,7 +34,7 @@ jobs:
         run: > 
           sudo apt-get update && sudo apt-get install python3-setuptools ccache libglew-dev libx11-dev linux-headers-$(uname -r)
 
-      - name: Install Conan
+      - name: Get latest Conan
         run: |
           pip install -U pip setuptools 
           pip3 install wheel
@@ -57,21 +57,37 @@ jobs:
       - name: Get latest CMake and ninja
         uses: lukka/get-cmake@latest
 
-      - name: Run Conan Install
+      - name: Run Conan Install Release
+        if: ${{ matrix.buildtype == 'linux-release' }}
         run: |
           mkdir build
           cd build
-          conan install -s compiler.libcxx=libstdc++11 .. --build=missing
+          mkdir ${{ matrix.buildtype }}
+          cd ${{ matrix.buildtype }}
+          conan install -s compiler.libcxx=libstdc++11 ../../ --build=missing
 
-      - name: Run CMake
+      - name: Run Conan Install Debug
+        if: ${{ matrix.buildtype == 'linux-debug' }}
+        run: |
+          mkdir build
+          cd build
+          mkdir ${{ matrix.buildtype }}
+          cd ${{ matrix.buildtype }}
+          conan install -s compiler.libcxx=libstdc++11 -s build_type=Debug ../../ --build=missing
+
+      - name: Run CMake Release
         run: |
           cd build
-          cmake ..
+          cd ${{ matrix.buildtype }}
+          cmake ../../ -DDEBUG_LOG=OFF -DASAN_ENABLED=OFF -DCMAKE_BUILD_TYPE=Release
+          cmake --build . --config Release
 
-      - name: Compile
+      - name: Run CMake Debug
         run: |
           cd build
-          make -j2
+          cd ${{ matrix.buildtype }}
+          cmake ../../ -DDEBUG_LOG=ON -DASAN_ENABLED=ON -DCMAKE_BUILD_TYPE=Debug
+          cmake --build . --config Debug
 
       - name: Create and Upload Artifact
         uses: actions/upload-artifact@v3

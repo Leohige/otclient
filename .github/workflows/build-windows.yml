@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         os: [windows-2022]
-        buildtype: [windows-release, windows-release-asan, windows-debug]
+        buildtype: [windows-release, windows-debug]
         include:
           - os: windows-2022
             triplet: x64-windows
@@ -53,7 +53,7 @@ jobs:
           cd build
           mkdir ${{ matrix.buildtype }}
           cd ${{ matrix.buildtype }}
-          conan install -s compiler='Visual Studio' ../../ --build=missing
+          conan install ../../ --build=missing
 
       - name: Run Conan Install Debug
         if: ${{ matrix.buildtype == 'windows-debug' }}
@@ -62,7 +62,7 @@ jobs:
           cd build
           mkdir ${{ matrix.buildtype }}
           cd ${{ matrix.buildtype }}
-          conan install -s compiler='Visual Studio' -s build_type=Debug ../../ --build=missing
+          conan install ../../ -s build_type=Debug --build=missing
 
       - name: Run CMake Release
         if: ${{ matrix.buildtype == 'windows-release' }}
@@ -70,15 +70,7 @@ jobs:
           cd build
           cd ${{ matrix.buildtype }}
           cmake ../../ -DDEBUG_LOG=OFF -DASAN_ENABLED=OFF -DCMAKE_BUILD_TYPE=Release
-          cmake --build . --config Release
-
-      - name: Run CMake Release Asan
-        if: ${{ matrix.buildtype == 'windows-release-asan' }}
-        run: |
-          cd build
-          cd ${{ matrix.buildtype }}
-          cmake ../../ -DDEBUG_LOG=OFF -DASAN_ENABLED=ON -DCMAKE_BUILD_TYPE=Release
-          cmake --build . --config Release
+          cmake --build .
 
       - name: Run CMake Debug
         if: ${{ matrix.buildtype == 'windows-debug' }}
@@ -86,7 +78,7 @@ jobs:
           cd build
           cd ${{ matrix.buildtype }}
           cmake ../../ -DDEBUG_LOG=ON -DASAN_ENABLED=ON -DCMAKE_BUILD_TYPE=Debug
-          cmake --build . --config Debug
+          cmake --build .
 
       - name: Create and Upload Artifact (exe)
         uses: actions/upload-artifact@v3
