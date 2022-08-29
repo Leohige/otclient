@@ -98,10 +98,10 @@ jobs:
 
       - name: Run build-wrapper
         run: |
-          ls
           mkdir -p build
-          ls
-          conan install . -s build_type=Debug -s compiler.libcxx=libstdc++11 --build=missing
+          cd build
+          conan install .. -s build_type=Debug -s compiler.libcxx=libstdc++11 --build=missing
+          cd ..
           cmake -DCMAKE_BUILD_TYPE=Debug -DOPTIONS_ENABLE_CCACHE=ON -S . -B build
           build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} cmake --build build
 
