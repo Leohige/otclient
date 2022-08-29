@@ -69,7 +69,7 @@ jobs:
         run: |
           cd build
           cd ${{ matrix.buildtype }}
-          cmake ../../ -DDEBUG_LOG=OFF -DASAN_ENABLED=OFF -DCMAKE_BUILD_TYPE=Release
+          cmake ../../ -DCMAKE_BUILD_TYPE=Release
           cmake --build .
 
       - name: Run CMake Debug
@@ -77,7 +77,7 @@ jobs:
         run: |
           cd build
           cd ${{ matrix.buildtype }}
-          cmake ../../ -DDEBUG_LOG=ON -DASAN_ENABLED=ON -DCMAKE_BUILD_TYPE=Debug
+          cmake ../../ -DCMAKE_BUILD_TYPE=Debug
           cmake --build .
 
       - name: Create and Upload Artifact (exe)
