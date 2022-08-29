@@ -89,6 +89,15 @@ jobs:
           cmake ../../ -DDEBUG_LOG=ON -DASAN_ENABLED=ON -DCMAKE_BUILD_TYPE=Debug
           cmake --build . --config Debug
 
+      - name: Rename and Move Artifact
+        run: |
+          cd build
+          cd ${{ matrix.buildtype }}
+          cd src
+          cd bin
+          mv otclient otclient-${{ matrix.buildtype }}-${{ github.sha }}
+          mv otclient-${{ matrix.buildtype }}-${{ github.sha }} ../../../
+
       - name: Show Content
         run: |
           ls
@@ -97,5 +106,3 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: otclient-${{ matrix.buildtype }}-${{ github.sha }}
-          path: |
-            ${{ github.workspace }}/otclient
