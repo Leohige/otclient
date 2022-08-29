@@ -1,0 +1,101 @@
+---
+name: Build - Windows
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  job:
+    name: ${{ matrix.os }}-${{ matrix.buildtype }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-2022]
+        buildtype: [macos-release, macos-debug]
+        include:
+          - os: macos-latest
+            packages: >
+              sccache
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: CCache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          max-size: "1G"
+          variant: "sccache"
+          key: ccache-${{ matrix.os }}-${{ matrix.buildtype }}
+          restore-keys: |
+            ccache-${{ matrix.os }}
+
+      - name: Get Python 3.10
+        uses: actions/setup-python@v1
+        with:
+          python-version: '3.10'
+
+      - name: Get Latest XCode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Get latest Conan
+        run: pip install conan
+
+      - name: Get latest CMake and ninja
+        uses: lukka/get-cmake@latest
+
+      - name: Run Conan Install Release
+        if: ${{ matrix.buildtype == 'macos-release' }}
+        run: |
+          mkdir build
+          cd build
+          mkdir ${{ matrix.buildtype }}
+          cd ${{ matrix.buildtype }}
+          conan install ../../ -s build_type=Release --build=missing
+
+      - name: Run Conan Install Debug
+        if: ${{ matrix.buildtype == 'macos-debug' }}
+        run: |
+          mkdir build
+          cd build
+          mkdir ${{ matrix.buildtype }}
+          cd ${{ matrix.buildtype }}
+          conan install ../../ -s build_type=Debug --build=missing
+
+      - name: Run CMake Release
+        if: ${{ matrix.buildtype == 'macos-release' }}
+        run: |
+          cd build
+          cd ${{ matrix.buildtype }}
+          cmake ../../ -DCMAKE_BUILD_TYPE=Release
+          cmake --build . --config Release
+
+      - name: Run CMake Debug
+        if: ${{ matrix.buildtype == 'macos-debug' }}
+        run: |
+          cd build
+          cd ${{ matrix.buildtype }}
+          cmake ../../ -DCMAKE_BUILD_TYPE=Debug
+          cmake --build . --config Debug
+
+      - name: Rename and Move Artifact
+        run: |
+          cd build
+          cd ${{ matrix.buildtype }}
+          cd src
+          cd bin
+          mkdir artifact
+          mv otclient artifact/otclient-${{ matrix.os }}-${{ matrix.buildtype }}-${{ github.sha }}
+
+      - name: Create and Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: otclient-${{ matrix.buildtype }}-${{ github.sha }}
+          path: |
+            ${{ github.workspace }}/build/${{ matrix.buildtype }}/src/bin/artifact
