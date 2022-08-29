@@ -62,7 +62,7 @@ Have found a bug? Please create an issue in our [bug tracker](https://github.com
 
 ### Contributing
 
-We encourage you to contribute to otclient! You can make pull requests of any improvement in our github page, alternatively, see [Contributing Wiki Page](https://github.com/leohige/otclient/wiki/Contributing).
+We encourage you to contribute to otclient! You can make pull requests of any improvement in our github page.
 
 ### Contact
 
