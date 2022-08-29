@@ -49,7 +49,6 @@ jobs:
         uses: lukka/get-cmake@latest
 
       - name: Run Conan Install Release
-        if: ${{ matrix.buildtype == 'linux-release' }}
         run: |
           mkdir build
           cd build
