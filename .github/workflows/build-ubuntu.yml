@@ -96,7 +96,7 @@ jobs:
           cd src
           cd bin
           mkdir artifact
-          mv otclient otclient-${{ matrix.buildtype }}-${{ github.sha }} artifact
+          mv otclient artifact/otclient-${{ matrix.buildtype }}-${{ github.sha }}
 
       - name: Create and Upload Artifact
         uses: actions/upload-artifact@v3
