@@ -95,16 +95,12 @@ jobs:
           cd ${{ matrix.buildtype }}
           cd src
           cd bin
-          mv otclient otclient-${{ matrix.buildtype }}-${{ github.sha }}
-          mv otclient-${{ matrix.buildtype }}-${{ github.sha }} ../../../
-
-      - name: Show Content
-        run: |
-          ls
+          mkdir artifact
+          mv otclient otclient-${{ matrix.buildtype }}-${{ github.sha }} artifact
 
       - name: Create and Upload Artifact
         uses: actions/upload-artifact@v3
         with:
           name: otclient-${{ matrix.buildtype }}-${{ github.sha }}
           path: |
-            ${{ github.workspace }}
+            ${{ github.workspace }}/build/${{ matrix.buildtype }}/src/bin/artifact
