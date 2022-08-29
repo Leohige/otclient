@@ -1,73 +1,65 @@
----
-name: Analysis - CodeQL
+name: "Code Scanning - Action"
 
 on:
   push:
-    paths:
-      - 'src/**'
-      - '**.py'
-
-env:
-  CMAKE_BUILD_PARALLEL_LEVEL: 2
-  MAKEFLAGS: '-j 2'
-  NODE_OPTIONS: ' --max-old-space-size=8192 '
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
-  codeql:
-    name: CodeQL
-    runs-on: ${{ matrix.os }}
+  CodeQL-Build:
+    # CodeQL runs on ubuntu-latest, windows-latest, and macos-latest
+    runs-on: ubuntu-latest
 
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-20.04]
-        language: ['cpp', 'python']
-        include:
-          - language: cpp
-            buildtype: linux-release
+    permissions:
+      # required for all workflows
+      security-events: write
+
+      # only required for workflows in private repositories
+      actions: read
+      contents: read
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # Initializes the CodeQL tools for scanning.
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
         with:
-          languages: ${{ matrix.language }}
+          languages: c, cpp, lua
 
       - name: Install Linux Dependencies
-        if: ${{ matrix.language == 'cpp' }}
-        run: >
-          sudo apt-get update && sudo apt-get install ccache libglew-dev libx11-dev linux-headers-$(uname -r)
+        run: > 
+          sudo apt-get update && sudo apt-get install python3-setuptools ccache libglew-dev libx11-dev linux-headers-$(uname -r)
+
+      - name: Get latest Conan
+        run: |
+          pip install -U pip setuptools 
+          pip3 install wheel
+          pip3 install conan
 
       - name: Switch to gcc-11
-        if: ${{ matrix.language == 'cpp' }}
         run: |
-          sudo apt install gcc-11 g++-11 python
-          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 100 --slave /usr/bin/g++ g++ /usr/bin/g++-11 --slave /usr/bin/gcov gcov /usr/bin/gcov-11
+          sudo apt install gcc-11 g++-11
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 100 --slave /usr/bin/g++ g++ /usr/bin/g++-11 --slave /usr/bin/gcov gcov /usr/bin/gcov-12
           sudo update-alternatives --set gcc /usr/bin/gcc-11
 
-      - name: CCache
-        uses: hendrikmuhs/ccache-action@v1.2
-        with:
-          max-size: "1G"
-          key: ccache-${{ matrix.os }}-${{ matrix.buildtype }}
-          restore-keys: |
-            ccache-${{ matrix.os }}
-
-      - name: Get Conan
-        uses: turtlebrowser/get-conan@main
-
       - name: Get latest CMake and ninja
-        if: ${{ matrix.language == 'cpp' }}
         uses: lukka/get-cmake@latest
 
-      - name: Run CMake
-        if: ${{ matrix.language == 'cpp' }}
-        uses: lukka/run-cmake@v10
-        with:
-          configurePreset: ${{ matrix.buildtype }}
-          buildPreset: ${{ matrix.buildtype }}
+      - name: Run Conan Install Release
+        if: ${{ matrix.buildtype == 'linux-release' }}
+        run: |
+          mkdir build
+          cd build
+          conan install -s compiler.libcxx=libstdc++11 .. --build=missing
+
+      - name: Run CMake Release
+        run: |
+          cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release
+          cmake --build . --config Release
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
