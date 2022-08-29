@@ -34,7 +34,7 @@ jobs:
 
       - name: Install Linux Dependencies
         run: >
-          sudo apt-get update && sudo apt-get install ccache libglew-dev libx11-dev linux-headers-$(uname -r)
+          sudo apt-get update && sudo apt-get install python3-setuptools ccache libglew-dev libx11-dev linux-headers-$(uname -r)
 
       - name: Switch to gcc-11
         run: |
@@ -51,6 +51,11 @@ jobs:
           restore-keys: |
             ccache-${{ runner.os}}-${{ matrix.buildtype }}-
             ccache-${{ runner.os}}-
+
+      - name: Get latest Conan
+        with:
+          pip3 install wheel
+          pip3 install conan
 
       - name: Sonar cache
         uses: actions/cache@v3
@@ -100,7 +105,8 @@ jobs:
       - name: Run build-wrapper
         run: |
           mkdir -p build
-          cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake -DOPTIONS_ENABLE_CCACHE=ON -S . -B build
+          conan install .. -s build_type=Debug --build=missing
+          cmake -DCMAKE_BUILD_TYPE=Debug -DOPTIONS_ENABLE_CCACHE=ON -S . -B build
           build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} cmake --build build
 
       - name: Run PR sonar-scanner
