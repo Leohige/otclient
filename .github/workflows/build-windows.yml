@@ -80,16 +80,18 @@ jobs:
           cmake ../../ -DCMAKE_BUILD_TYPE=Debug
           cmake --build . --config Debug
 
+      - name: Rename and Move Artifact
+        run: |
+          cd build
+          cd ${{ matrix.buildtype }}
+          cd src
+          cd bin
+          mkdir artifact
+          mv otclient.exe artifact/otclient-${{ matrix.os }}-${{ matrix.buildtype }}-${{ github.sha }}.exe
+
       - name: Create and Upload Artifact (exe)
         uses: actions/upload-artifact@v3
         with:
           name: otclient-${{ matrix.buildtype }}-${{ github.sha }}
           path: |
-            ${{ github.workspace }}/otclient.exe
-
-      - name: Create and Upload Artifact (dlls)
-        uses: actions/upload-artifact@v3
-        with:
-          name: otclient-${{ matrix.buildtype }}-${{ github.sha }}
-          path: |
-            ${{ github.workspace }}/*.dll
+            ${{ github.workspace }}/build/${{ matrix.buildtype }}/src/bin/artifact
