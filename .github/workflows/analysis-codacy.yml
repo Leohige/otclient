@@ -13,14 +13,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@main
 
       - name: Run Codacy Analysis CLI
         uses: codacy/codacy-analysis-cli-action@master
         with:
-          output: results.sarif
-          format: sarif
-          gh-code-scanning-compat: true
+          tool: 	Clang-Tidy
+          api-token: ${{ secrets.CODACY_API_TOKEN }}
+          upload: true
           max-allowed-issues: 2147483647
 
       - name: Upload SARIF results file
