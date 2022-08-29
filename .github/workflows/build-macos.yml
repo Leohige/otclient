@@ -14,10 +14,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-10.15]
+        os: [macos-12]
         buildtype: [macos-release, macos-debug]
         include:
-          - os: macos-10.15
+          - os: macos-12
             packages: >
               sccache
 
